@@ -1,0 +1,70 @@
+#pragma once
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <math.h>
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+typedef int8_t s8;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef int64_t s64;
+typedef float f32;
+typedef double f64;
+
+#define PI (3.14159265358979323)
+#define TAU (6.28318530717958646)
+
+// Its not la.h. Its just a silly math subset.
+
+typedef struct {f64 x, y;} NE_Vec2;
+typedef struct {f64 x, y, z;} NE_Vec3;
+typedef struct {f64 x, y, z, w;} NE_Vec4;
+
+typedef struct {f64 cos, sin;} NE_Rotation;
+
+NE_Vec2 NE_Vec2_From1(f64 x);
+NE_Vec2 NE_Vec2_From2(f64 x, f64 y);
+
+NE_Vec3 NE_Vec3_From1(f64 x);
+NE_Vec3 NE_Vec3_From2(f64 x, f64 y);
+NE_Vec3 NE_Vec3_From3(f64 x, f64 y, f64 z);
+
+NE_Vec4 NE_Vec4_From1(f64 x);
+NE_Vec4 NE_Vec4_From2(f64 x, f64 y);
+NE_Vec4 NE_Vec4_From3(f64 x, f64 y, f64 z);
+NE_Vec4 NE_Vec4_From4(f64 x, f64 y, f64 z, f64 w);
+
+static inline NE_Rotation NE_Rotation_From_Rad(f64 a) {
+    return (NE_Rotation) {cos(a), sin(a)};
+}
+NE_Vec2 NE_Vec2_Rotate(NE_Vec2 v, NE_Rotation r);
+NE_Vec3 NE_Vec3_RotateXY(NE_Vec3 v, NE_Rotation r);
+
+NE_Vec2 NE_Vec2_Add(NE_Vec2 a, NE_Vec2 b);
+NE_Vec2 NE_Vec2_Sub(NE_Vec2 a, NE_Vec2 b);
+NE_Vec2 NE_Vec2_Mul(NE_Vec2 a, NE_Vec2 b);
+NE_Vec2 NE_Vec2_Div(NE_Vec2 a, NE_Vec2 b);
+NE_Vec2 NE_Vec2_Scale(NE_Vec2 v, f64 s);
+
+NE_Vec3 NE_Vec3_Add(NE_Vec3 a, NE_Vec3 b);
+NE_Vec3 NE_Vec3_Sub(NE_Vec3 a, NE_Vec3 b);
+NE_Vec3 NE_Vec3_Mul(NE_Vec3 a, NE_Vec3 b);
+NE_Vec3 NE_Vec3_Div(NE_Vec3 a, NE_Vec3 b);
+NE_Vec3 NE_Vec3_Scale(NE_Vec3 v, f64 s);
+
+f64     NE_Vec3_MagSqrt(NE_Vec3 v);
+f64     NE_Vec3_Mag(NE_Vec3 v);
+NE_Vec3 NE_Vec3_Norm(NE_Vec3 v);
+
+NE_Vec4 NE_Vec4_Add(NE_Vec4 a, NE_Vec4 b);
+NE_Vec4 NE_Vec4_Sub(NE_Vec4 a, NE_Vec4 b);
+NE_Vec4 NE_Vec4_Mul(NE_Vec4 a, NE_Vec4 b);
+NE_Vec4 NE_Vec4_Div(NE_Vec4 a, NE_Vec4 b);
+NE_Vec4 NE_Vec4_Scale(NE_Vec4 v, f64 s);
+
+#define natodo(c) {fprintf(stderr, ""__FILE__":%d: "c"\n", __LINE__);exit(1);}
+
