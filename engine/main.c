@@ -22,7 +22,7 @@ static double getDeltaTime() {
     double platest = latest;
     latest = getSystemTime();
     if (latest == 0)
-	return 0;
+        return 0;
     return latest-platest;
 }
 
@@ -43,21 +43,21 @@ static void bball_onmsg(void *_ent, NEnt_ent ent_id, NEnt_ent caller, NEnt_Msg_K
     BBall_Data *ent = _ent;
     switch (msg_kind) {
     case NENT_MSG_UPDATE: {
-	// MB i'll put something here.
+        // MB i'll put something here.
     } break;
     case NENT_MSG_RENDER: {
-	NScreen_DrawCircle(NE_Vec3_From3(ent->pos.x, ent->pos.y, 4.-4.*sqrt(ent->pos.x*ent->pos.x+ent->pos.y*ent->pos.y)), .01, NE_RED);
+        NScreen_DrawCircle(NE_Vec3_From3(ent->pos.x, ent->pos.y, 4.-4.*sqrt(ent->pos.x*ent->pos.x+ent->pos.y*ent->pos.y)), .01, NE_RED);
     } break;
     case NENT_MSG_30Hz_UPDATE: {
-	ent->pos = NE_Vec2_Add(ent->pos, NE_Vec2_Scale(ent->vel, deltaTime));
-	const static double bs = .5f;
-	if (ent->pos.x < -bs) {ent->pos.x = -bs;ent->vel.x *= -1;}
-	if (ent->pos.x > bs) {ent->pos.x = bs;ent->vel.x *= -1;}
-	if (ent->pos.y < -bs) {ent->pos.y = -bs;ent->vel.y *= -1;}
-	if (ent->pos.y > bs) {ent->pos.y = bs;ent->vel.y *= -1;}
+        ent->pos = NE_Vec2_Add(ent->pos, NE_Vec2_Scale(ent->vel, deltaTime));
+        const static double bs = .5f;
+        if (ent->pos.x < -bs) {ent->pos.x = -bs;ent->vel.x *= -1;}
+        if (ent->pos.x > bs) {ent->pos.x = bs;ent->vel.x *= -1;}
+        if (ent->pos.y < -bs) {ent->pos.y = -bs;ent->vel.y *= -1;}
+        if (ent->pos.y > bs) {ent->pos.y = bs;ent->vel.y *= -1;}
     } break;
     default: {
-	natodo("WTF just now is happened???");
+        natodo("WTF just now is happened???");
     } break;
     }
 }
@@ -88,29 +88,29 @@ static void player_onmsg(void *_ent, NEnt_ent ent_id, NEnt_ent caller, NEnt_Msg_
     Player_Data *ent = _ent;
     switch (msg_kind) {
     case NENT_MSG_UPDATE: {
-	// MB i'll put something here.
+        // MB i'll put something here.
     } break;
     case NENT_MSG_RENDER: {
-	NScreen_DrawCircle(ent->pos, .01, NE_MYCOLOR);
+        NScreen_DrawCircle(ent->pos, .01, NE_MYCOLOR);
     } break;
     case NENT_MSG_30Hz_UPDATE: {
-	NE_Vec3 vel = {0};
-	if (NScreen_IsKeyDown(NE_KEY_w)) vel.y += 1.;
-	if (NScreen_IsKeyDown(NE_KEY_a)) vel.x -= 1.;
-	if (NScreen_IsKeyDown(NE_KEY_s)) vel.y -= 1.;
-	if (NScreen_IsKeyDown(NE_KEY_d)) vel.x += 1.;
-	if (NScreen_IsKeyDown(NE_KEY_q)) vel.z += 1.;
-	if (NScreen_IsKeyDown(NE_KEY_e)) vel.z -= 1.;
-	vel = NE_Vec3_Norm(vel);
-	ent->pos = NE_Vec3_Add(ent->pos, NE_Vec3_Scale(vel, deltaTime));
-	const static double bs = .5f;
-	if (ent->pos.x < -bs) ent->pos.x = -bs;
-	if (ent->pos.x > bs) ent->pos.x = bs;
-	if (ent->pos.y < -bs) ent->pos.y = -bs;
-	if (ent->pos.y > bs) ent->pos.y = bs;
+        NE_Vec3 vel = {0};
+        if (NScreen_IsKeyDown(NE_KEY_w)) vel.y += 1.;
+        if (NScreen_IsKeyDown(NE_KEY_a)) vel.x -= 1.;
+        if (NScreen_IsKeyDown(NE_KEY_s)) vel.y -= 1.;
+        if (NScreen_IsKeyDown(NE_KEY_d)) vel.x += 1.;
+        if (NScreen_IsKeyDown(NE_KEY_q)) vel.z += 1.;
+        if (NScreen_IsKeyDown(NE_KEY_e)) vel.z -= 1.;
+        vel = NE_Vec3_Norm(vel);
+        ent->pos = NE_Vec3_Add(ent->pos, NE_Vec3_Scale(vel, deltaTime));
+        const static double bs = .5f;
+        if (ent->pos.x < -bs) ent->pos.x = -bs;
+        if (ent->pos.x > bs) ent->pos.x = bs;
+        if (ent->pos.y < -bs) ent->pos.y = -bs;
+        if (ent->pos.y > bs) ent->pos.y = bs;
     } break;
     default: {
-	natodo("WTF just now is happened???");
+        natodo("WTF just now is happened???");
     } break;
     }
 }
@@ -134,44 +134,44 @@ int main() {
     NEnt_add(player_intf);
     
     while (NScreen_IsNtClosed()) {
-	deltaTime = getDeltaTime();
-	systemTime = getSystemTime();
-	pos.y += deltaTime*.13;
-	pos.x += deltaTime*.14;
-	if (pos.x < -1.f) pos.x = 1.f;
-	if (pos.x > 1.f) pos.x = -1.f;
-	if (pos.y < -1.f) pos.y = 1.f;
-	if (pos.y > 1.f) pos.y = -1.f;
-	if (NScreen_IsKeyPressed(NE_KEY_r))
-	    NEnt_add(bball_intf);
-	NScreen_BeginFrame();
-	{
-	    bool dt = NScreen_GetDepthTest();
-	    NScreen_SetDepthTest(false);
-	    NE_Rotation r = NE_Rotation_From_Rad(systemTime);
-	    NScreen_DrawTriangle_Ex(
-		NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(0, .1f),r)),
-		NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(-.1f, -.1f),r)),
-		NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(.1f, -.1f),r)),
-		NE_GREEN,
-		NE_RED,
-		NE_BLUE
-		);
-	    NScreen_DrawCircle(
-		pos,
-		.03f,
-		NE_BLACK
-		);
-	    NScreen_DrawCircle(
-		pos,
-		.01f,
-		NE_WHITE
-		);
-	    NScreen_SetDepthTest(dt);
-	}
-	pos.z = sinf(systemTime)*.5f+1.f;
-	NEnt_update();
-	NScreen_EndFrame();
+        deltaTime = getDeltaTime();
+        systemTime = getSystemTime();
+        pos.y += deltaTime*.13;
+        pos.x += deltaTime*.14;
+        if (pos.x < -1.f) pos.x = 1.f;
+        if (pos.x > 1.f) pos.x = -1.f;
+        if (pos.y < -1.f) pos.y = 1.f;
+        if (pos.y > 1.f) pos.y = -1.f;
+        if (NScreen_IsKeyPressed(NE_KEY_r))
+            NEnt_add(bball_intf);
+        NScreen_BeginFrame();
+        {
+            bool dt = NScreen_GetDepthTest();
+            NScreen_SetDepthTest(false);
+            NE_Rotation r = NE_Rotation_From_Rad(systemTime);
+            NScreen_DrawTriangle_Ex(
+                NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(0, .1f),r)),
+                NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(-.1f, -.1f),r)),
+                NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(.1f, -.1f),r)),
+                NE_GREEN,
+                NE_RED,
+                NE_BLUE
+                );
+            NScreen_DrawCircle(
+                pos,
+                .03f,
+                NE_BLACK
+                );
+            NScreen_DrawCircle(
+                pos,
+                .01f,
+                NE_WHITE
+                );
+            NScreen_SetDepthTest(dt);
+        }
+        pos.z = sinf(systemTime)*.5f+1.f;
+        NEnt_update();
+        NScreen_EndFrame();
     }
 }
 

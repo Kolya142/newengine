@@ -57,11 +57,11 @@ void NScreen_init(u32 width, u32 height, const char *title) {
     // Something is wrong with GLu.
     {
         f32 m[16] = {0};
-	m[0] = 1.f;
-	m[5] = 1.f;
-	m[10] = -1.f;
-	m[15] = 1.f;
-	glMultMatrixf(m);
+        m[0] = 1.f;
+        m[5] = 1.f;
+        m[10] = -1.f;
+        m[15] = 1.f;
+        glMultMatrixf(m);
     }
     
     glMatrixMode(GL_MODELVIEW);
@@ -84,10 +84,10 @@ void NScreen_BeginFrame() {
     isnt_closed = !is_closed;
     if (is_closed) return;
     while (RGFW_window_checkEvent(rwin, &rev)) {
-	if (rev.type == RGFW_quit) {
-	    is_closed = true;
-	    isnt_closed = false;
-	}
+        if (rev.type == RGFW_quit) {
+            is_closed = true;
+            isnt_closed = false;
+        }
     }
     if (is_closed) return;
     
@@ -107,13 +107,13 @@ void NScreen_DrawCircle(NE_Vec3 o, f64 r, NE_Color col) {
 #define CIRCLE_SEGMENTS 16
     f64 lx = 0, ly = r;
     for (f64 i = 0; i <= TAU; i += TAU/CIRCLE_SEGMENTS) {
-	f64 cx = sin(i)*r,
-	    cy = cos(i)*r;
-	glVertex3d(o.x, o.y, o.z);
-	glVertex3d(o.x+lx, o.y+ly, o.z);
-	glVertex3d(o.x+cx, o.y+cy, o.z);
-	lx = cx;
-	ly = cy;
+        f64 cx = sin(i)*r,
+            cy = cos(i)*r;
+        glVertex3d(o.x, o.y, o.z);
+        glVertex3d(o.x+lx, o.y+ly, o.z);
+        glVertex3d(o.x+cx, o.y+cy, o.z);
+        lx = cx;
+        ly = cy;
     }
 
     glVertex3d(o.x, o.y, o.z);
