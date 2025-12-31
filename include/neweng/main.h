@@ -40,9 +40,9 @@ typedef struct {
 } NE_Color;
 
 typedef struct {
-    NE_Vertex *verteces;
-    NE_Color *colors; // 1 color per vertex.
-    NE_Face *faces;
+    const NE_Vertex *verteces;
+    const NE_Color *colors; // 1 color per vertex.
+    const NE_Face *faces;
     // size_t vert_count; i think it'sn't something needed now.
     size_t face_count;
 } NE_Model;

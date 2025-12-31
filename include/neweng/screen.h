@@ -129,13 +129,17 @@ typedef enum {
     NE_KEY_keyLast = 256
 } NE_Key; // Sorry, RGFW authors.
 
+#define DEG2RAD (PI/180)
+#define RAD2DEG (180/PI)
 
-void NScreen_init(u32 width, u32 height, const char *title);
+void NScreen_init(u32 width, u32 height, f64 fov, const char *title);
 
 bool NScreen_IsClosed();
 bool NScreen_IsNtClosed(); // Finally isn't closed function!
 
 void NScreen_BeginFrame();
+void NScreen_TranslateCamera(NE_Vec3 origin);
+void NScreen_RotateCamera(f64 yaw, f64 pitch, f64 roll); // YZ,XZ,XY
 void NScreen_EndFrame();
 
 void NScreen_DrawCircle(NE_Vec3 o, f64 r, NE_Color col);
@@ -157,6 +161,9 @@ void *NScreen_GetSystemHandler();
 #define NE_MAGENTA ((NE_Color){1.,0,1.,1.})
 #define NE_MYCOLOR ((NE_Color){.894,.878,0,1.})
 #define NE_GREEN ((NE_Color){0,1.,0,1.})
+#define NE_CYAN ((NE_Color){0,1.,1.,1.})
 #define NE_BLUE ((NE_Color){0,0,1.,1.})
 #define NE_BLACK ((NE_Color){0,0,0,1.})
 #define NE_WHITE ((NE_Color){1.,1.,1.,1.})
+#define NE_GRAY ((NE_Color){.5,.5,.5,1.})
+#define NE_ORANGE ((NE_Color){1.,.5,0,1.})

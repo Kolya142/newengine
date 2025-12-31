@@ -85,13 +85,13 @@ static const NE_Vertex player_model_v[] = {
 
 static const NE_Color player_model_c[] = {
     NE_RED,
+    NE_MAGENTA,
     NE_GREEN,
-    NE_RED,
-    NE_GREEN,
-    NE_RED,
-    NE_GREEN,
-    NE_RED,
-    NE_GREEN,
+    NE_CYAN,
+    NE_BLUE,
+    NE_BLACK,
+    NE_WHITE,
+    NE_ORANGE,
 };
 
 static const NE_Face player_model_f[] = {   
@@ -143,19 +143,19 @@ static void player_onmsg(void *_ent, NEnt_ent ent_id, NEnt_ent caller, NEnt_Msg_
         // NScreen_DrawCircle(ent->pos, .01, NE_MYCOLOR);
         NE_TransformW tw = NE_Transform_Cache((NE_Transform) {
                 ent->pos,
-                {0,0,0},
+                {0,NE_systemTime,0},
                 NE_Vec3_From1(.01),
             });
         NScreen_RenderModel(player_model, tw);
     } break;
     case NENT_MSG_30Hz_UPDATE: {
         NE_Vec3 vel = {0};
-        if (NScreen_IsKeyDown(NE_KEY_w)) vel.y += 1.;
-        if (NScreen_IsKeyDown(NE_KEY_a)) vel.x -= 1.;
-        if (NScreen_IsKeyDown(NE_KEY_s)) vel.y -= 1.;
-        if (NScreen_IsKeyDown(NE_KEY_d)) vel.x += 1.;
-        if (NScreen_IsKeyDown(NE_KEY_q)) vel.z += 1.;
-        if (NScreen_IsKeyDown(NE_KEY_e)) vel.z -= 1.;
+        // if (NScreen_IsKeyDown(NE_KEY_w)) vel.y += 1.;
+        // if (NScreen_IsKeyDown(NE_KEY_a)) vel.x -= 1.;
+        // if (NScreen_IsKeyDown(NE_KEY_s)) vel.y -= 1.;
+        // if (NScreen_IsKeyDown(NE_KEY_d)) vel.x += 1.;
+        // if (NScreen_IsKeyDown(NE_KEY_q)) vel.z += 1.;
+        // if (NScreen_IsKeyDown(NE_KEY_e)) vel.z -= 1.;
         vel = NE_Vec3_Norm(vel);
         ent->pos = NE_Vec3_Add(ent->pos, NE_Vec3_Scale(vel, NE_deltaTime));
         const static double bs = .5f;
@@ -181,12 +181,15 @@ NEnt_intf player_intf = {
 };
 
 int main() {
-    NScreen_init(800, 600, "New Engine");
+    NScreen_init(1080, 720, 90., "New Engine");
 
     NE_Vec3 pos = NE_Vec3_From3(0, 0, 1.);
 
     NEnt_add(bball_intf);
     NEnt_add(player_intf);
+    f64 c_yaw = 0;
+    f64 c_pitch = 0;
+    NE_Vec3 c_pos = {0};
     
     while (NScreen_IsNtClosed()) {
         NE_deltaTime = getDeltaTime();
@@ -201,29 +204,36 @@ int main() {
             NEnt_add(bball_intf);
         NScreen_BeginFrame();
         {
-            bool dt = NScreen_GetDepthTest();
-            NScreen_SetDepthTest(false);
-            NE_Rotation r = NE_Rotation_From_Rad(NE_systemTime);
-            NScreen_DrawTriangle_Ex(
-                NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(0, .1f),r)),
-                NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(-.1f, -.1f),r)),
-                NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(.1f, -.1f),r)),
-                NE_GREEN,
-                NE_RED,
-                NE_BLUE
-                );
-            NScreen_DrawCircle(
-                pos,
-                .03f,
-                NE_BLACK
-                );
-            NScreen_DrawCircle(
-                pos,
-                .01f,
-                NE_WHITE
-                );
-            NScreen_SetDepthTest(dt);
+            NE_Vec3 vel = {0};
+            if (NScreen_IsKeyDown(NE_KEY_w)) vel.z += 1.;
+            if (NScreen_IsKeyDown(NE_KEY_a)) vel.x -= 1.;
+            if (NScreen_IsKeyDown(NE_KEY_s)) vel.z -= 1.;
+            if (NScreen_IsKeyDown(NE_KEY_d)) vel.x += 1.;
+            if (NScreen_IsKeyDown(NE_KEY_q)) vel.y += 1.;
+            if (NScreen_IsKeyDown(NE_KEY_e)) vel.y -= 1.;
+            vel = NE_Vec3_Norm(vel);
+            vel = NE_Vec3_Scale(vel, NE_deltaTime);
+            c_pos = NE_Vec3_Add(vel, c_pos);
         }
+        if (NScreen_IsKeyDown(NE_KEY_up))
+            c_pitch += NE_deltaTime;
+        if (NScreen_IsKeyDown(NE_KEY_down))
+            c_pitch -= NE_deltaTime;
+        if (NScreen_IsKeyDown(NE_KEY_left))
+            c_yaw += NE_deltaTime;
+        if (NScreen_IsKeyDown(NE_KEY_right))
+            c_yaw -= NE_deltaTime;
+        NScreen_RotateCamera(c_yaw, c_pitch, 0);
+        NScreen_TranslateCamera(c_pos);
+        NE_Rotation r = NE_Rotation_From_Rad(NE_systemTime);
+        NScreen_DrawTriangle_Ex(
+            NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(0, .1f),r)),
+            NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(-.1f, -.1f),r)),
+            NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(.1f, -.1f),r)),
+            NE_GREEN,
+            NE_RED,
+            NE_BLUE
+            );
         pos.z = sinf(NE_systemTime)*.5f+1.f;
         NEnt_update();
         NScreen_EndFrame();

@@ -10,6 +10,9 @@
 static RGFW_window *rwin;
 static RGFW_event rev;
 
+static f64 rwidth, rheight;
+static f64 rfov;
+
 static u8 icon[16 * 16 * 3 + 1] = // Silly Placeholder
     "\377\000\000\377\000\000\377\000\000\377\000\000\377\000\000\377\000\000\377\000\000\377\000\000\377\000\000"
     "\377\000\000\377\000\000\377\000\000\377\000\000\377\000\000\377\000\000\377\000\000\377\000\000J\000\377J"
@@ -41,31 +44,18 @@ static u8 icon[16 * 16 * 3 + 1] = // Silly Placeholder
     "\377\000\000\377\000\000\060\377\000\060\377\000\060\377\000\060\377\000\060\377\000\060\377\000\060"
     "\377\000";
 
-void NScreen_init(u32 width, u32 height, const char *title) {
-    rwin = RGFW_createWindow(title, 0, 0, width, height, RGFW_windowCenter | RGFW_windowOpenGL);
+void NScreen_init(u32 width, u32 height, f64 fov, const char *title) {
+    rfov = fov;
+    rwidth = width;
+    rheight = height;
+    // TODO: unhardcode it.
+    bool is_fullscreen = (width == 1920) && (height == 1080); // My laptop has screen 1920x1080.
+    rwin = RGFW_createWindow(title, 0, 0, width, height, is_fullscreen ? RGFW_windowFullscreen | RGFW_windowOpenGL : RGFW_windowCenter | RGFW_windowOpenGL);
     RGFW_window_setIcon(rwin, icon, 16, 16, RGFW_formatBGR8);
     RGFW_window_makeCurrentContext_OpenGL(rwin);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    f64 aspect = ((f64)width)/((f64)height);
-    gluPerspective(60., aspect, .1, 100.);
-
-    // Something is wrong with GLu.
-    {
-        f32 m[16] = {0};
-        m[0] = 1.f;
-        m[5] = 1.f;
-        m[10] = -1.f;
-        m[15] = 1.f;
-        glMultMatrixf(m);
-    }
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 }
 
 static bool is_closed = false;
@@ -93,6 +83,36 @@ void NScreen_BeginFrame() {
     
     glClearColor(0.f, 1.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    f64 aspect = ((f64)rwidth)/((f64)rheight);
+    gluPerspective(rfov, aspect, .01, 100.);
+
+    // Something is wrong with GLu.
+    {
+        f32 m[16] = {0};
+        m[0] = 1.f;
+        m[5] = 1.f;
+        m[10] = -1.f;
+        m[15] = 1.f;
+        glMultMatrixf(m);
+    }
+    
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
+
+void NScreen_TranslateCamera(NE_Vec3 origin) {
+    glMatrixMode(GL_PROJECTION);
+    glTranslated(-origin.x, -origin.y, -origin.z);
+}
+
+void NScreen_RotateCamera(f64 yaw, f64 pitch, f64 roll) {
+    glMatrixMode(GL_PROJECTION);
+    glRotated(roll*RAD2DEG, 0, 0, 1);
+    glRotated(pitch*RAD2DEG, 1, 0, 0);
+    glRotated(yaw*RAD2DEG, 0, 1, 0);
 }
 
 void NScreen_EndFrame() {
