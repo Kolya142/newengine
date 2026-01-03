@@ -5,7 +5,6 @@
 #include "../thirdparty/RGFW.h"
 
 #include <GL/gl.h>
-#include <GL/glu.h>
 
 static RGFW_window *rwin;
 static RGFW_event rev;
@@ -50,7 +49,7 @@ void NScreen_init(u32 width, u32 height, f64 fov, const char *title) {
     rheight = height;
     // TODO: unhardcode it.
     bool is_fullscreen = (width == 1920) && (height == 1080); // My laptop has screen 1920x1080.
-    rwin = RGFW_createWindow(title, 0, 0, width, height, is_fullscreen ? RGFW_windowFullscreen | RGFW_windowOpenGL : RGFW_windowCenter | RGFW_windowOpenGL);
+    rwin = RGFW_createWindow(title, 0, 0, width, height, (is_fullscreen ? RGFW_windowFullscreen | RGFW_windowOpenGL : RGFW_windowCenter) | RGFW_windowOpenGL);
     RGFW_window_setIcon(rwin, icon, 16, 16, RGFW_formatBGR8);
     RGFW_window_makeCurrentContext_OpenGL(rwin);
 
@@ -69,7 +68,9 @@ bool NScreen_IsNtClosed() {
     return isnt_closed;
 }
 
-void NScreen_BeginFrame() {
+#include <GL/glu.h>
+
+void NScreen_BeginFrame(f64 *omx, f64 *omy) {
     is_closed = RGFW_window_shouldClose(rwin);
     isnt_closed = !is_closed;
     if (is_closed) return;
@@ -87,9 +88,21 @@ void NScreen_BeginFrame() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     f64 aspect = ((f64)rwidth)/((f64)rheight);
-    gluPerspective(rfov, aspect, .01, 100.);
-
-    // Something is wrong with GLu.
+    { // stolen from GLu.
+        f32 m[4][4] = {0};
+        f32 radians = rfov / 2 * PI / 180;
+        f32 zNear = .01, zFar = 100.;
+        f32 deltaZ = zFar-zNear;
+        f32 sine = sin(radians);
+        f32 cotangent = cos(radians)/sine;
+        m[0][0] = cotangent / aspect;
+        m[1][1] = cotangent;
+        m[2][2] = -(zFar + zNear) / deltaZ;
+        m[2][3] = -1;
+        m[3][2] = -2 * zNear * zFar / deltaZ;
+        
+        glLoadMatrixf((f32 *)m);
+    }
     {
         f32 m[16] = {0};
         m[0] = 1.f;
@@ -101,6 +114,20 @@ void NScreen_BeginFrame() {
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    i32 mx_ = 0, my_ = 0;
+    RGFW_window_getMouse(rwin, &mx_, &my_);
+    {
+        f32 mx = mx_;
+        f32 my = my_;
+        mx -= rwidth*.5;
+        my -= rheight*.5;
+        mx /= rwidth*.5;
+        my /= rheight*.5;
+        if (omx) *omx = mx;
+        if (omy) *omy = my;
+        RGFW_window_moveMouse(rwin, rwin->x+rwidth*.5, rwin->y+rheight*.5);
+    }
 }
 
 void NScreen_TranslateCamera(NE_Vec3 origin) {

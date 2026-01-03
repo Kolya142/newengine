@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
@@ -17,8 +18,15 @@ typedef double f64;
 
 extern f64 NE_deltaTime, NE_systemTime;
 
+#ifndef _Nullable
+#define _Nullable
+#endif
+
 #define PI (3.14159265358979323)
 #define TAU (6.28318530717958646)
+
+// I spent 30 minutes to find this value. Don't ask me for Math.
+#define GRAV (4./3.)
 
 // Sorry, all Tsoding fans, for me not using la.h.
 
