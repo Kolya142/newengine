@@ -137,7 +137,7 @@ void NScreen_init(u32 width, u32 height, f64 fov, const char *title);
 bool NScreen_IsClosed();
 bool NScreen_IsNtClosed(); // Finally isn't closed function!
 
-void NScreen_BeginFrame();
+void NScreen_BeginFrame(f64 *_Nullable mdx, f64 *_Nullable mdy); // mouse delta, not an absolute position.
 void NScreen_TranslateCamera(NE_Vec3 origin);
 void NScreen_RotateCamera(f64 yaw, f64 pitch, f64 roll); // YZ,XZ,XY
 void NScreen_EndFrame();

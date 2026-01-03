@@ -17,8 +17,11 @@ typedef struct {
     void *(*alloc)(NEnt_ent id);
     void(*dealloc)(void *ent, NEnt_ent id);
     void(*onmsg)(void *ent, NEnt_ent id, NEnt_ent caller, NEnt_Msg_Kind msg_kind, void *msg);
+    s32 intf_id;
 } NEnt_intf;
 
 NEnt_ent NEnt_add(NEnt_intf intf);
 void NEnt_update(void);
-void NEnt_send(NEnt_Msg_Kind msg_kind, NEnt_ent callee, void *msg_data);
+void NEnt_destroy(NEnt_ent id);
+s32 NEnt_get_intfid(NEnt_ent ent); // -1 - no such entity
+void NEnt_send(NEnt_Msg_Kind msg_kind, NEnt_ent callee, void *msg_data); // doesn't need caller id
