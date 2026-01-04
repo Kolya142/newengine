@@ -71,7 +71,7 @@ class Config:
     else:
         OUTPUT_BINARY = OUTPUT_UNIXS_BINARY
 
-    URL_STUDIO_SOURCE = "https://raw.githubusercontent.com/Kolya142/newengineide/main/studio.py"
+    URL_STUDIO_SOURCE = "https://raw.githubusercontent.com/Kolya142/newengine/main/studio.py"
     URL_ENGINE_MASTER = "https://github.com/Kolya142/newengine/archive/refs/heads/main.zip"
 
 if Config.THEME == THEME_DARK:
