@@ -1,12 +1,13 @@
+active_studio_name = \
+"NewEngine Studio v0.10.0"
 """
-NewEngine Studio v0.9.9 - Absolute Deep Fix
--------------------------------------------
-Полноценная среда разработки для движка NewEngine.
-Максимально детализированная архитектура БЕЗ сокращений.
-Все функции логики и интерфейса синхронизированы.
+An interactive development environment for the Kolya142's engine "NewEngine".
 
-Автор: AI Assistant
-Лицензия: MIT
+License: MIT
+
+Mainteiners:
+crinbrodev - vibecoded this studio in Russian
+Kolya142 - made it useable, deleted code&text trash and translated it to English
 """
 
 import customtkinter as ctk
@@ -29,83 +30,113 @@ from pathlib import Path
 from typing import List, Optional, Dict, Set, Tuple
 from concurrent.futures import ThreadPoolExecutor
 
-# =============================================================================
-# 1. ГЛОБАЛЬНАЯ КОНФИГУРАЦИЯ СИСТЕМЫ
-# =============================================================================
+# TODOO: Add JSON parser or something like this.
+
+
+
+
+THEME_DARK = 0
+THEME_LIGHT = 1
+# TODO: Add these themes
+#  THEME_PAPER = 2
+#  THEME_CONTRAST = 3
 
 class Config:
     """
-    Класс для централизованного управления путями и настройками.
-    Все пути вычисляются относительно папки, в которой запущен studio.py.
+    Class that centerilizes configuration of the IDE.
     """
-    APP_NAME = "NewEngine Studio"
-    VERSION = "0.9.9 (Absolute Deep Fix)"
-    THEME = "Dark"
+    APP_NAME = active_studio_name
+    THEME = THEME_LIGHT
     ACCENT_COLOR = "blue"
-    
-    # Определение базовой директории
+
     ROOT_DIR = Path(os.getcwd())
-    
-    # Пути для результатов сборки
+
     BIN_DIR = ROOT_DIR / "bin"
     OBJ_DIR = BIN_DIR / "obj"
-    
-    # Пути исходного кода
+
     INCLUDE_DIR = ROOT_DIR / "include"
     THIRDPARTY_DIR = INCLUDE_DIR / "thirdparty"
     ASSETS_DIR = ROOT_DIR / "assets"
     GAME_DIR = ROOT_DIR / "game"
     ENGINE_DIR = ROOT_DIR / "engine"
-    
-    # Путь для хранения резервных копий
-    BACKUP_DIR = ROOT_DIR / "backups"
-    
-    # Настройки компилятора
+
     COMPILER = "gcc"
+
+    # TODO: MacOS uses they own executeable format, not ELF.
+    OUTPUT_WIN64_BINARY = "game.exe"
+    OUTPUT_UNIXS_BINARY = "game"
+
     if platform.system() == "Windows":
-        OUTPUT_BINARY = "game.exe"
+        OUTPUT_BINARY = OUTPUT_WIN64_BINARY
     else:
-        OUTPUT_BINARY = "game"
-        
-    # Ссылки для обновления (GitHub)
-    URL_STUDIO_SOURCE = "https://raw.githubusercontent.com/crimbrodev/newengineSTUDIO/main/studio.py"
+        OUTPUT_BINARY = OUTPUT_UNIXS_BINARY
+
+    URL_STUDIO_SOURCE = "https://raw.githubusercontent.com/Kolya142/newengineide/main/studio.py"
     URL_ENGINE_MASTER = "https://github.com/Kolya142/newengine/archive/refs/heads/main.zip"
-    
-    # Библиотеки для менеджера зависимостей
-    LIBRARY_MAP = {
-        "stb_image": "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h",
-        "miniaudio": "https://raw.githubusercontent.com/mackron/miniaudio/master/miniaudio.h",
-        "cJSON": "https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h",
-        "nuklear": "https://raw.githubusercontent.com/Immediate-Mode-UI/Nuklear/master/nuklear.h"
-    }
 
-# =============================================================================
-# 2. НИЗКОУРОВНЕВЫЕ UI КОМПОНЕНТЫ
-# =============================================================================
+if Config.THEME == THEME_DARK:
+    CS = [
+        "#ff5555",  # 0
+        "#ffb86c",  # 1
+        "#50fa7b",  # 2
+        "#8be9fd",  # 3
+        "#6272a4",  # 4
 
-class LogPanel(ctk.CTkTextbox):
+        "#1d1d1d",  # 5
+        "#ffffff",  # 6
+        "#1d1d1d",  # 7
+        "#333333",  # 8
+        "#ffffff",  # 9
+        "#1f538d",  # 10
+
+        "#2d8a2d",  # 11
+
+        "#d68a00",  # 12
+    ]
+elif Config.THEME == THEME_LIGHT:
+    CS = [
+        "#ffaaaa",  # 0
+        "#ffb86c",  # 1
+        "#50fa7b",  # 2
+        "#8be9fd",  # 3
+        "#6272a4",  # 4
+
+        "#eaeaea",  # 5
+        "#000000",  # 6
+        "#eaeaea",  # 7
+        "#dddddd",  # 8
+        "#000000",  # 9
+        "#7fb3ed",  # 10
+
+        "#8dea8d",  # 11
+
+        "#d68a00",  # 12
+    ]
+
+
+
+
+class LogWidget(ctk.CTkTextbox):
     """
-    Специализированный виджет консоли.
-    Используется для вывода системных логов с цветовой индикацией.
+    Loging console widget.
+    Used to output logs with color indication.
     """
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        # Настройка шрифта (моноширинный для кода)
-        self.configure(state="disabled", font=("Consolas", 11))
-        
-        # Определение цветовой схемы
-        # CustomTkinter не позволяет менять 'font' через tag_config
-        self.tag_config("error", foreground="#ff5555")
-        self.tag_config("warning", foreground="#ffb86c")
-        self.tag_config("success", foreground="#50fa7b")
-        self.tag_config("info", foreground="#8be9fd")
-        self.tag_config("dim", foreground="#6272a4")
+        self.configure(state="disabled", font=("FreeMono", 11))
 
-    def write(self, text: str, tag: Optional[str] = None):
-        """Безопасная вставка текста в окно консоли."""
+        self.tag_config("error", foreground=CS[0])
+        self.tag_config("warning", foreground=CS[1])
+        self.tag_config("success", foreground=CS[2])
+        self.tag_config("info", foreground=CS[3])
+        self.tag_config("dim", foreground=CS[4])
+        self.do_scroll = True
+
+    def log(self, text: str, tag: Optional[str] = None):
         self.configure(state="normal")
         self.insert("end", text, tag)
-        self.see("end") # Автоматический скролл вниз
+        if self.do_scroll:
+            self.see("end")
         self.configure(state="disabled")
 
     def clear_content(self):
@@ -114,585 +145,504 @@ class LogPanel(ctk.CTkTextbox):
         self.delete("1.0", "end")
         self.configure(state="disabled")
 
-class IssuesTable(ctk.CTkFrame):
+class CompilerIssuesTable(ctk.CTkFrame):
     """
-    Виджет таблицы для отображения ошибок GCC.
-    Реализован через ttk.Treeview с поддержкой темной темы.
+    It's just like LogWidget but for the compiler.
     """
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        
-        # Настройка стиля Treeview для соответствия темной теме
+
+        # TODOO: Some users may want to use light theme.
         style = ttk.Style()
         style.theme_use("clam")
         style.configure(
-            "Treeview", 
-            background="#1d1d1d", 
-            foreground="#ffffff", 
-            fieldbackground="#1d1d1d", 
-            borderwidth=0, 
+            "Treeview",
+            background=CS[5],
+            foreground=CS[6],
+            fieldbackground=CS[7],
+            borderwidth=0,
             rowheight=25,
-            font=("Segoe UI", 10)
+            font=("FreeMono", 10)
         )
         style.configure(
-            "Treeview.Heading", 
-            background="#333333", 
-            foreground="#ffffff", 
-            borderwidth=1, 
-            font=("Segoe UI", 10, "bold")
+            "Treeview.Heading",
+            background=CS[8],
+            foreground=CS[9],
+            borderwidth=1,
+            font=("FreeMono", 10, "bold")
         )
-        style.map("Treeview", background=[('selected', '#1f538d')])
+        style.map("Treeview", background=[('selected', CS[10])])
 
-        # Создание колонок таблицы
         columns = ("File", "Line", "Severity", "Message")
         self.tree = ttk.Treeview(self, columns=columns, show='headings')
-        
-        self.tree.heading("File", text="Файл")
-        self.tree.heading("Line", text="Стр.")
-        self.tree.heading("Severity", text="Тип")
-        self.tree.heading("Message", text="Сообщение")
-        
+
+        self.tree.heading("File", text="File")
+        self.tree.heading("Line", text="Line")
+        self.tree.heading("Severity", text="Type")
+        self.tree.heading("Message", text="Text")
+
         self.tree.column("File", width=140, anchor="w")
         self.tree.column("Line", width=50, anchor="center")
         self.tree.column("Severity", width=90, anchor="center")
         self.tree.column("Message", width=450, anchor="w")
-        
-        # Вертикальный скроллбар
+
+        # Scrollbar
         self.v_scroll = ctk.CTkScrollbar(self, orientation="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=self.v_scroll.set)
-        
+
         self.tree.pack(side="left", fill="both", expand=True)
         self.v_scroll.pack(side="right", fill="y")
 
     def add_issue(self, file: str, line: str, severity: str, message: str):
-        """Добавляет новую запись об ошибке/предупреждении."""
-        icon = "❌" if severity.lower() == "error" else "⚠️"
+        icon = "ERROR" if severity.lower() == "error" else "WARING"
         self.tree.insert("", "end", values=(file, line, f"{icon} {severity}", message))
 
-    def clear_table(self):
-        """Очистка всех строк в таблице."""
+    def clear_issues(self):
         for row in self.tree.get_children():
             self.tree.delete(row)
 
-# =============================================================================
-# 3. ЛОГИЧЕСКИЕ МОДУЛИ (BACKEND)
-# =============================================================================
+
+
 
 class DependencyManager:
-    """Система анализа дерева инклудов (#include)."""
-    
+    """Analysis include (#include) system."""
+
     def extract_includes(self, file_path: Path) -> List[str]:
-        """Парсит файл и возвращает список всех хедеров."""
+        """Extracts all includes by a file name."""
         if not file_path.exists():
             return []
-            
+
         includes_found = []
         try:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
-                # Поиск строк типа #include "file.h" или #include <file.h>
+                # #include "file.h"<file.h>
                 pattern = r'#include\s+["<]([^">]+)[">]'
                 matches = re.findall(pattern, content)
                 for m in matches:
                     includes_found.append(m)
         except Exception as e:
-            print(f"[DependencyManager] Ошибка при чтении {file_path.name}: {e}")
-            
+            print(f"[DependencyManager] Error when reading {file_path.name}: {e}")
+
         return includes_found
 
     def check_rebuild_needed(self, source_c: Path, object_o: Path) -> bool:
-        """Рекурсивно проверяет, нужно ли пересобирать файл."""
-        # Если объектного файла нет - собираем обязательно
-        if not object_o.exists():
+        """Checks is rebuild needed using recursive dependency analyser."""
+
+        if not object_o.exists():  # When there is no target build, because THERE IS NO TARGET BUILD.
             return True
-            
+
         target_time = os.path.getmtime(object_o)
-        
-        # Проверка самого исходника
+
+        if os.path.getmtime(__file__) > target_time:
+            return True
+
         if os.path.getmtime(source_c) > target_time:
             return True
-            
-        # Рекурсивная проверка всех подключенных заголовков
+
         visited = set()
         stack = self.extract_includes(source_c)
-        
+
         while stack:
             header_name = stack.pop()
             if header_name in visited:
                 continue
             visited.add(header_name)
-            
-            # Ищем файл хедера в путях инклудов проекта
+
             for folder in [Config.INCLUDE_DIR, Config.ASSETS_DIR, source_c.parent]:
                 h_path = folder / header_name
                 if h_path.exists():
-                    # Если какой-то хедер новее .o файла - нужна пересборка
                     if os.path.getmtime(h_path) > target_time:
                         return True
-                    # Проверяем вложенные зависимости этого хедера
                     stack.extend(self.extract_includes(h_path))
                     break
         return False
 
 class GitEngine:
-    """Логика взаимодействия с Git-репозиторием."""
-    
+    """Abstration layer for the Git."""
+
     @staticmethod
     def is_installed() -> bool:
-        """Проверка наличия Git в системе."""
+        """Checks is there `git' installed."""
         try:
-            subprocess.run(["git", "--version"], capture_output=True)
+            subprocess.run(["git", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             return True
         except FileNotFoundError:
             return False
 
     @staticmethod
     def run_command(args: List[str]) -> Tuple[bool, str]:
-        """Выполняет команду Git и возвращает результат."""
+        """Executes Git command."""
         if not GitEngine.is_installed():
-            return False, "Git не установлен в системе."
-            
-        try:
-            process = subprocess.run(
-                ["git"] + args,
-                capture_output=True,
-                text=True,
-                cwd=Config.ROOT_DIR,
-                encoding='utf-8',
-                errors='replace'
-            )
-            if process.returncode == 0:
-                output = process.stdout if process.stdout else "Команда успешно выполнена."
-                return True, output
-            else:
-                return False, process.stderr if process.stderr else "Неизвестная ошибка Git."
-        except Exception as e:
-            return False, f"Сбой подсистемы Git: {str(e)}"
+            return False, "Install Git first."
+
+        process = subprocess.run(
+            ["git"] + args,
+            capture_output=True,
+            text=True,
+            cwd=Config.ROOT_DIR,
+            encoding='utf-8',
+            errors='replace'
+        )
+        if process.returncode == 0:
+            output = process.stdout if process.stdout else "Command completed successfully."
+            return True, output
+        else:
+            return False, process.stderr if process.stderr else (process.stdout if process.stdout else "Unknown Git error.")  # Git shall log error, but ...
 
     @staticmethod
-    def get_detailed_status() -> str:
-        """Получает расширенный статус репозитория."""
+    def get_repo_status() -> str:
         git_dir = Config.ROOT_DIR / ".git"
         if not git_dir.exists():
-            return "Папка не является Git-репозиторием."
-            
+            return "The folder does not contain git repo."
+
         ok, out = GitEngine.run_command(["status", "--short"])
         if ok:
-            return out if out.strip() else "Изменений в файлах нет."
-        return f"Ошибка запроса статуса: {out}"
+            return out if out.strip() else "No Changes."
+        return f"Git error: {out}"
 
-class SnapshotManager:
-    """Управление резервными снимками проекта."""
-    
-    @staticmethod
-    def create_snapshot(reason: str = "manual") -> str:
-        """Создает ZIP-архив папки game/."""
-        if not Config.GAME_DIR.exists():
-            return "Ошибка: папка game/ не найдена."
-            
-        Config.BACKUP_DIR.mkdir(parents=True, exist_ok=True)
-        # Генерация имени файла на основе времени
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"backup_{timestamp}_{reason}.zip"
-        target_path = Config.BACKUP_DIR / filename
-        
-        try:
-            with zipfile.ZipFile(target_path, "w", zipfile.ZIP_DEFLATED) as archive:
-                for file_path in Config.GAME_DIR.rglob("*"):
-                    if file_path.is_file():
-                        archive.write(file_path, file_path.relative_to(Config.ROOT_DIR))
-            return filename
-        except Exception as e:
-            return f"Ошибка при создании бэкапа: {str(e)}"
+# I removed SnapshotManager because Git already has own snapshot system called `commits'
 
-    @staticmethod
-    def restore_snapshot(zip_name: str) -> bool:
-        """Восстанавливает файлы из бэкапа."""
-        archive_path = Config.BACKUP_DIR / zip_name
-        if not archive_path.exists():
-            return False
-            
-        try:
-            # Безопасность: делаем авто-бэкап перед откатом
-            SnapshotManager.create_snapshot("pre_restore_safety")
-            
-            with zipfile.ZipFile(archive_path, "r") as archive:
-                archive.extractall(Config.ROOT_DIR)
-            return True
-        except Exception:
-            return False
-
-    @staticmethod
-    def list_snapshots() -> List[str]:
-        """Возвращает список всех существующих архивов бэкапа."""
-        if not Config.BACKUP_DIR.exists():
-            return []
-        files = [f.name for f in Config.BACKUP_DIR.glob("*.zip")]
-        files.sort(reverse=True)
-        return files
-
-class EngineDocParser:
-    """Инструмент для автоматического сканирования API движка."""
-    
-    @staticmethod
-    def parse_engine_api() -> Dict[str, List[str]]:
-        """Парсит заголовки и вытягивает прототипы функций."""
-        results = {}
-        if not Config.INCLUDE_DIR.exists():
-            return results
-            
-        # Регулярка для поиска функций C: Возврат Имя(Аргументы);
-        regex = re.compile(r'^([A-Za-z0-9_]+\s+\*?[A-Za-z0-9_]+)\s*\(([^)]*)\);', re.MULTILINE)
-        
-        # Фильтры для очистки вывода
-        forbidden_words = {'return', 'if', 'else', 'while', 'for', 'switch', 'typedef', 'static', 'extern'}
-        valid_prefixes = ('NE_', 'NScreen_', 'NEnt_', 'RGFW_', 'void', 'int', 'bool', 'u8', 'u32', 'f32', 'f64', 's32')
-
-        for header_file in Config.INCLUDE_DIR.rglob("*.h"):
-            try:
-                raw_code = header_file.read_text(encoding='utf-8', errors='ignore')
-                
-                # Полное удаление комментариев
-                raw_code = re.sub(r'//.*', '', raw_code)
-                raw_code = re.sub(r'/\*.*?\*/', '', raw_code, flags=re.DOTALL)
-                
-                matches = regex.findall(raw_code)
-                if matches:
-                    rel_path = str(header_file.relative_to(Config.INCLUDE_DIR))
-                    file_functions = []
-                    
-                    for match in matches:
-                        func_head = match[0].strip()
-                        func_args = match[1].strip()
-                        
-                        # Разделяем заголовок на слова для проверки фильтров
-                        head_words = func_head.split()
-                        first_word = head_words[0] if head_words else ""
-                        
-                        if first_word in forbidden_words:
-                            continue
-                        if "__" in func_head:
-                            continue
-                        if not any(func_head.startswith(p) for p in valid_prefixes):
-                            continue
-                            
-                        # Формируем финальную строку
-                        signature = f"{func_head}({func_args});"
-                        file_functions.append(signature)
-                        
-                    if file_functions:
-                        results[rel_path] = file_functions
-            except Exception:
-                continue
+def parse_engine_api() -> Dict[str, List[str]]:
+    results: Dict[str, List[str]] = {}
+    if not Config.INCLUDE_DIR.exists():
         return results
 
-class ModelAssetProcessor:
-    """Конвертер 3D моделей .obj в заголовочные файлы C."""
-    
-    @staticmethod
-    def process_obj_to_h(input_path: Path) -> str:
-        """Парсит геометрию OBJ и возвращает текст хедера."""
-        name = input_path.stem.lower().replace(" ", "_")
-        vertices_list = []
-        faces_list = []
-        
+    # Regexp for parsing C function definitions.
+    # TODOO: crimbrodev forgot about extern/const/unsigned
+    regex = re.compile(r'^([A-Za-z0-9_]+\s+\*?[A-Za-z0-9_]+)\s*\(([^)]*)\);', re.MULTILINE)
+
+    forbidden_words = {'return', 'if', 'else', 'while', 'for', 'switch', 'typedef', 'static'}
+    valid_prefixes = (
+        'N',  # NewEngine.
+        'void', 'char', 'short', 'int', 'long', 'float', 'double',  # C types
+        'u8', 's8', 'u16', 's16', 'u32', 's32', 'u64', 's64', 'f32', 'f64'  # Simplified types.
+    )
+
+    for header_file in Config.INCLUDE_DIR.rglob("*.h"):
         try:
-            with open(input_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith('#'):
+            raw_code = header_file.read_text(encoding='utf-8', errors='ignore')
+
+            raw_code = re.sub(r'//.*', '', raw_code)
+            raw_code = re.sub(r'/\*.*?\*/', '', raw_code, flags=re.DOTALL)
+
+            matches = regex.findall(raw_code)
+            if matches:
+                rel_path = str(header_file.relative_to(Config.INCLUDE_DIR))
+                file_functions = []
+
+                for match in matches:
+                    func_head = match[0].strip()
+                    func_args = match[1].strip()
+
+                    head_words = func_head.split()
+                    first_word = head_words[0] if head_words else ""
+
+                    if first_word in forbidden_words:
                         continue
-                        
-                    if line.startswith('v '):
-                        parts = line.split()
-                        if len(parts) >= 4:
-                            v_str = f"    {{{parts[1]}, {parts[2]}, {parts[3]}}}"
-                            vertices_list.append(v_str)
-                            
-                    elif line.startswith('f '):
-                        parts = line.split()
-                        # Извлекаем индексы вершин (OBJ 1-based)
-                        idxs = [str(int(p.split('/')[0]) - 1) for p in parts[1:]]
-                        
-                        # Треугольник
-                        if len(idxs) == 3:
-                            faces_list.append(f"    {{{idxs[0]}, {idxs[1]}, {idxs[2]}}}")
-                        # Квадрат -> 2 треугольника
-                        elif len(idxs) == 4:
-                            faces_list.append(f"    {{{idxs[0]}, {idxs[1]}, {idxs[2]}}}")
-                            faces_list.append(f"    {{{idxs[0]}, {idxs[2]}, {idxs[3]}}}")
+                    if "__" in func_head:
+                        continue
+                    if not any(func_head.startswith(p) for p in valid_prefixes):
+                        continue
+                    file_functions.append(f"{func_head}({func_args});")
 
-            code = f"#pragma once\n\n"
-            code += f"// Сгенерировано NewEngine Studio\n"
-            code += f"// Источник: {input_path.name}\n\n"
-            
-            code += f"static const NE_Vertex {name}_v[] = {{\n"
-            code += ",\n".join(vertices_list)
-            code += "\n}};\n\n"
-            
-            code += f"static const NE_Color {name}_c[] = {{\n"
-            white = "    {1.0, 1.0, 1.0, 1.0}"
-            code += ",\n".join([white] * len(vertices_list))
-            code += "\n}};\n\n"
-            
-            code += f"static const NE_Face {name}_f[] = {{\n"
-            code += ",\n".join(faces_list)
-            code += "\n}};\n\n"
-            
-            code += f"static const NE_Model {name}_model = {{\n"
-            code += f"    .verteces = {name}_v,\n"
-            code += f"    .colors = {name}_c,\n"
-            code += f"    .faces = {name}_f,\n"
-            code += f"    .face_count = {len(faces_list)}\n"
-            code += "};\n"
-            return code
-            
-        except Exception as e:
-            return f"Ошибка при разборе OBJ: {str(e)}"
+                if file_functions:
+                    results[rel_path] = file_functions
+        except Exception:
+            continue
+    return results
 
-# =============================================================================
-# 4. СИСТЕМА СБОРКИ (PARALLEL BUILD CORE)
-# =============================================================================
+# TODO: I want to do it in engine it self, so this is kinda useless
+
+def convert_obj_to_c(input_path: Path) -> str:
+    """Converts .obj to .c."""
+    name = input_path.stem.lower().replace(" ", "_")
+    vertices_list = []
+    faces_list = []
+
+    try:
+        with open(input_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+
+                if line.startswith('v '):
+                    parts = line.split()
+                    if len(parts) >= 4:
+                        v_str = f"    {{{parts[1]}, {parts[2]}, {parts[3]}}}"
+                        vertices_list.append(v_str)
+
+                elif line.startswith('f '):
+                    parts = line.split()
+                    idxs = [str(int(p.split('/')[0]) - 1) for p in parts[1:]]
+
+                    if len(idxs) == 3:
+                        faces_list.append(f"    {{{idxs[0]}, {idxs[1]}, {idxs[2]}}}")
+                    else:
+                        # Splitting polygons to triangles.
+                        assert (len(idxs)-3)%2 != 0, f"Invalid polygon in .obj file \"{input_path}\"."
+                        for i in range(0, len(idnx), 2):
+                            faces_list.append(f"    {{{idxs[i]}, {idxs[i+1]}, {idxs[(i+2)%idnx]}}}")
+
+        code = f"#pragma once\n\n"
+        code += f"// Generated by NewEngine Studio\n"
+        code += f"// Source: {input_path.name}\n\n"
+
+        code += f"static const NE_Vertex {name}_v[] = {{\n"
+        code += ",\n".join(vertices_list)
+        code += "\n}};\n\n"
+
+        code += f"static const NE_Color {name}_c[] = {{\n"
+        white = "    {1.0, 1.0, 1.0, 1.0}"
+        code += ",\n".join([white] * len(vertices_list))
+        code += "\n}};\n\n"
+
+        code += f"static const NE_Face {name}_f[] = {{\n"
+        code += ",\n".join(faces_list)
+        code += "\n}};\n\n"
+
+        code += f"static const NE_Model {name}_model = {{\n"
+        code += f"    .verteces = {name}_v,\n"
+        code += f"    .colors = {name}_c,\n"
+        code += f"    .faces = {name}_f,\n"
+        code += f"    .face_count = {len(faces_list)}\n"
+        code += "};\n"
+        return code
+
+    except Exception as e:
+        return f"Error when parsing .obj file \"{input_file}\": {str(e)}"
+
+
+
+
 
 class BuildCore:
-    """Ядро компиляции с поддержкой многопоточности."""
+    """Parallel Compilation System."""
     def __init__(self, app):
         self.app = app
         self.dep_manager = DependencyManager()
         self.thread_pool = ThreadPoolExecutor(max_workers=os.cpu_count())
         self.active_game_process: Optional[subprocess.Popen] = None
         self.is_compiling = False
-        # Регулярка для захвата ошибок GCC
         self.gcc_regex = re.compile(r"^(.*):(\d+):(\d+): (error|warning|note): (.*)$")
 
-    def request_build(self, profile: str, auto_run: bool = False):
-        """Точка входа для запуска асинхронной сборки."""
+    def request_build(self, profile: str, /, auto_run: bool = False, force: bool = False):
+        """Requests threaded build."""
         if self.is_compiling:
             return
-        # Создаем поток сборки
         worker = threading.Thread(
-            target=self._compilation_thread_logic, 
-            args=(profile, auto_run), 
+            target=self._compilation_thread_logic,
+            args=(profile, auto_run, force),
             daemon=True
         )
         worker.start()
 
-    def _compile_unit(self, src: Path, flags: List[str]) -> Optional[str]:
-        """Компилирует один конкретный .c файл. Выполняется параллельно."""
+    def _compile_unit(self, src: Path, flags: List[str], force: bool) -> Optional[str]:
         rel_path = src.relative_to(Config.ROOT_DIR)
         obj_name = str(rel_path).replace(os.sep, "_").replace(".c", ".o")
         obj_full_path = Config.OBJ_DIR / obj_name
-        
-        # Проверка инкрементальности
-        if not self.dep_manager.check_rebuild_needed(src, obj_full_path):
-            return str(obj_full_path)
 
-        self.app.log_to_console(f"Компиляция: {rel_path}\n", "dim")
-        
-        # Команда GCC
+        if not force:
+            if not self.dep_manager.check_rebuild_needed(src, obj_full_path):
+                return str(obj_full_path)
+
+        self.app.log_to_console(f"Compiling: {rel_path}\n", "dim")
+
+        # TODOOO: Some compilers (eg. MSVC) requests different arguments
         cmd = [Config.COMPILER, "-c", str(src), "-o", str(obj_full_path)] + flags
-        if "engine" in src.parts and src.name == "main.c":
-            cmd.append("-Dmain=__engine_dummy_main")
-            
+
         process_res = subprocess.run(cmd, capture_output=True, text=True, cwd=Config.ROOT_DIR)
-        
-        # Передаем stderr на парсинг ошибок
+
         if process_res.stderr:
             self.app.on_compiler_message(process_res.stderr)
-            
+
         if process_res.returncode == 0:
             return str(obj_full_path)
         return None
 
-    def _compilation_thread_logic(self, profile: str, run_after: bool):
-        """Основной цикл управления сборкой."""
+    def _compilation_thread_logic(self, profile: str, run_after: bool, force: bool):
         self.is_compiling = True
         self.app.set_ui_busy_state(True)
         self.app.clear_console()
         self.app.clear_issues()
-        
+
         start_time = time.time()
-        self.app.log_to_console(f"--- НАЧАЛО СБОРКИ [{profile}] ---\n", "info")
-        
+        self.app.log_to_console(f"--- STARTING BUILD USING PROFILE [{profile}] ---\n", "info")
+
         Config.OBJ_DIR.mkdir(parents=True, exist_ok=True)
         Config.BIN_DIR.mkdir(parents=True, exist_ok=True)
-        
-        # Поиск всех файлов .c
+
+        with open(Config.BIN_DIR / ".gitignore", 'w') as f:
+            f.write("# NO BINARIES IN MY REPO\n*")
+
         source_files = []
         for d in [Config.ENGINE_DIR, Config.GAME_DIR]:
             if d.exists():
                 source_files.extend(list(d.rglob("*.c")))
 
-        # Настройка флагов на основе профиля
         is_debug = "Debug" in profile
-        opt_flags = ["-g", "-O0"] if is_debug else ["-O3", "-s"]
+        # O3 is too agressive optimization
+        opt_flags = []
+        match profile:
+            case "Debug":
+                opt_flags = ["-g", "-O0"]
+            case "Release":
+                opt_flags = ["-s", "-O3"]
+            case "Not stripped Release":
+                opt_flags = ["-O3"]
+            case "Low-optimization Release":
+                opt_flags = ["-s"]
         common_flags = [f"-I{Config.INCLUDE_DIR}", f"-I{Config.ASSETS_DIR}", "-Wall"] + opt_flags
 
-        # ПАРАЛЛЕЛЬНАЯ КОМПИЛЯЦИЯ
-        self.app.log_to_console(f"Задействовано ядер процессора: {os.cpu_count()}\n", "dim")
-        object_units = list(self.thread_pool.map(lambda s: self._compile_unit(s, common_flags), source_files))
-        
+        self.app.log_to_console(f"--- Using {os.cpu_count()} CPU Cores ---\n", "dim")
+        object_units = list(self.thread_pool.map(lambda s: self._compile_unit(s, common_flags, force), source_files))
+
         if None in object_units:
-            self.app.log_to_console("\nСБОРКА ПРЕРВАНА: Исправьте ошибки в коде.\n", "error")
+            self.app.log_to_console("\nCompilation errors.\n", "error")
         else:
-            # ЭТАП ЛИНКОВКИ
-            self.app.log_to_console("\nЛинковка всех модулей...\n", "info")
+            self.app.log_to_console("\n--- LINKING ---\n", "info")
             output_exe = Config.BIN_DIR / Config.OUTPUT_BINARY
-            
-            linker_libs = ["-lopengl32", "-lglu32", "-lgdi32", "-lwinmm"]
+
+            linker_libs = ["-lopengl32", "-lgdi32"]
             if platform.system() == "Linux":
-                linker_libs = ["-lGL", "-lGLU", "-lm", "-lX11", "-lXrandr"]
+                linker_libs = ["-lGL", "-lm", "-lX11", "-lXrandr"]
             if not is_debug and platform.system() == "Windows":
                 linker_libs.append("-mwindows")
-            
+
             link_cmd = [Config.COMPILER] + object_units + ["-o", str(output_exe)] + common_flags + linker_libs
-            
+
             res_link = subprocess.run(link_cmd, capture_output=True, text=True, cwd=Config.ROOT_DIR)
-            
+
             if res_link.returncode == 0:
                 elapsed = time.time() - start_time
-                self.app.log_to_console(f"УСПЕХ! Время сборки: {elapsed:.2f} сек.\n", "success")
+                self.app.log_to_console(f"Built successfully for {elapsed:.2f}s.\n", "success")
                 if run_after:
                     self.execute_game()
             else:
                 self.app.on_compiler_message(res_link.stderr)
-                self.app.log_to_console("Ошибка линковщика.\n", "error")
+                self.app.log_to_console("Linking error\n", "error")
 
         self.is_compiling = False
         self.app.set_ui_busy_state(False)
 
     def execute_game(self):
-        """Запуск исполняемого файла игры."""
         binary = Config.BIN_DIR / Config.OUTPUT_BINARY
         if not binary.exists():
-            self.app.log_to_console("Файл не найден.\n", "error")
+            self.request_build("Release")
             return
-            
+
         if self.active_game_process and self.active_game_process.poll() is None:
             self.active_game_process.terminate()
-            
+
         try:
             self.active_game_process = subprocess.Popen([str(binary)], cwd=Config.ROOT_DIR)
-            self.app.log_to_console("Процесс игры успешно запущен.\n", "success")
+            self.app.log_to_console("Game executed successfully.\n", "success")
         except Exception as e:
-            self.app.log_to_console(f"Сбой запуска: {e}\n", "error")
+            self.app.log_to_console(f"Failed to execute the game: {e}\n", "error")
 
-# =============================================================================
-# 5. ГЛАВНЫЙ КЛАСС STUDIO (IDE)
-# =============================================================================
+
+
+
 
 class StudioApp(ctk.CTk):
-    """IDE для NewEngine."""
     def __init__(self):
         super().__init__()
-        
-        # Инициализация свойств окна
-        self.title(f"{Config.APP_NAME} v{Config.VERSION}")
+
+        self.title(f"{Config.APP_NAME}")
         self.geometry("1200x850")
-        ctk.set_appearance_mode("Dark")
-        
-        # Системные модули
+        ctk.set_appearance_mode("Dark" if Config.THEME == THEME_DARK else "White")
+
         self.build_sys = BuildCore(self)
-        self.prof_var = ctk.StringVar(value="Отладка (Debug)")
+        self.prof_var = ctk.StringVar(value="Debug")
         self.hot_reload_active = False
         self.mtime_store = {}
         self.current_obj_path: Optional[Path] = None
 
-        # Настройка сетки
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # Создание интерфейса
         self._setup_sidebar()
         self._setup_main_tabs()
-        
-        self.log_to_console("Studio готова.\n", "info")
+
+        self.log_to_console("Core initialized.\n", "info")
 
     def _setup_sidebar(self):
-        """Левое меню."""
         self.sidebar = ctk.CTkFrame(self, width=220, corner_radius=0)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
-        
-        ctk.CTkLabel(self.sidebar, text="NEW ENGINE", font=("Arial", 22, "bold")).pack(pady=30)
-        
-        ctk.CTkLabel(self.sidebar, text="Режим сборки:", font=("Arial", 11)).pack(pady=(10, 0))
-        ctk.CTkOptionMenu(self.sidebar, values=["Отладка (Debug)", "Релиз (Release)"], variable=self.prof_var).pack(pady=10, padx=20)
 
-        self.btn_compile = ctk.CTkButton(self.sidebar, text="🔨 Собрать", command=lambda: self.build_sys.request_build(self.prof_var.get()))
+        ctk.CTkLabel(self.sidebar, text="New Engine", font=("Arial", 22, "bold")).pack(pady=30)
+
+        ctk.CTkLabel(self.sidebar, text="Build type:", font=("Arial", 11)).pack(pady=(10, 0))
+        ctk.CTkOptionMenu(self.sidebar, values=["Debug", "Release", "Not stripped Release", "Low-optimization Release"], variable=self.prof_var).pack(pady=10, padx=20)
+
+        self.btn_compile = ctk.CTkButton(self.sidebar, text="Build", command=lambda: self.build_sys.request_build(self.prof_var.get()))
         self.btn_compile.pack(pady=5, padx=20)
-        
-        self.btn_launch = ctk.CTkButton(self.sidebar, text="▶ Запустить", fg_color="#2d8a2d", command=self.build_sys.execute_game)
+
+        self.btn_fcompile = ctk.CTkButton(self.sidebar, text="Force Build", command=lambda: self.build_sys.request_build(self.prof_var.get(), force=True))
+        self.btn_fcompile.pack(pady=5, padx=20)
+
+        self.btn_launch = ctk.CTkButton(self.sidebar, text="Run", fg_color=CS[11], command=self.build_sys.execute_game)
         self.btn_launch.pack(pady=5, padx=20)
-        
-        self.btn_br = ctk.CTkButton(self.sidebar, text="🚀 Build & Run", command=lambda: self.build_sys.request_build(self.prof_var.get(), True))
+
+        self.btn_br = ctk.CTkButton(self.sidebar, text="Build & Run", command=lambda: self.build_sys.request_build(self.prof_var.get(), auto_run=True))
         self.btn_br.pack(pady=5, padx=20)
-        
-        self.sw_auto = ctk.CTkSwitch(self.sidebar, text="⚡ Авто-сборка", command=self.on_toggle_hot_reload)
+
+        self.btn_fbr = ctk.CTkButton(self.sidebar, text="Force Build & Run", command=lambda: self.build_sys.request_build(self.prof_var.get(), auto_run=True, force=True))
+        self.btn_fbr.pack(pady=5, padx=20)
+
+        self.sw_auto = ctk.CTkSwitch(self.sidebar, text="Hot build (doesn't work yet :(", command=self.on_toggle_hot_reload)
         self.sw_auto.pack(pady=30)
 
     def _setup_main_tabs(self):
-        """Система вкладок."""
         self.tabs = ctk.CTkTabview(self)
         self.tabs.grid(row=0, column=1, padx=15, pady=15, sticky="nsew")
-        
-        # Добавляем вкладки
-        self._init_tab_console(self.tabs.add("Консоль"))
+
+        self._init_tab_console(self.tabs.add("Console"))
         self._init_tab_git(self.tabs.add("Git"))
-        self._init_tab_api(self.tabs.add("Справочник API"))
-        self._init_tab_system(self.tabs.add("Система"))
-        self._init_tab_assets(self.tabs.add("Ассеты"))
+        self._init_tab_api(self.tabs.add("API Viewer"))
+        self._init_tab_system(self.tabs.add("System"))
+        self._init_tab_assets(self.tabs.add("Assets"))
 
     def _init_tab_console(self, tab):
         tab.grid_columnconfigure(0, weight=1); tab.grid_rowconfigure((0, 1), weight=1)
-        self.issues_view = IssuesTable(tab); self.issues_view.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        self.console_view = LogPanel(tab); self.console_view.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+        self.issues_view = CompilerIssuesTable(tab); self.issues_view.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        self.console_view = LogWidget(tab); self.console_view.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
 
     def _init_tab_git(self, tab):
         tab.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(tab, text="Статус Git", font=("Arial", 16, "bold")).pack(pady=10)
-        self.ui_git_log = ctk.CTkTextbox(tab, height=300, font=("Consolas", 11)); self.ui_git_log.pack(fill="x", padx=20, pady=10)
-        
+        ctk.CTkLabel(tab, text="Git Status", font=("Arial", 16, "bold")).pack(pady=10)
+        self.ui_git_log = ctk.CTkTextbox(tab, height=300, font=("FreeMono", 11)); self.ui_git_log.pack(fill="x", padx=20, pady=10)
+
         f = ctk.CTkFrame(tab); f.pack(pady=10)
-        ctk.CTkButton(f, text="Обновить", width=100, command=self.on_git_refresh_ui).pack(side="left", padx=5)
-        ctk.CTkButton(f, text="Коммит", width=100, command=self.on_git_commit_ui).pack(side="left", padx=5)
+        ctk.CTkButton(f, text="Update", width=100, command=self.on_git_refresh_ui).pack(side="left", padx=5)
+        ctk.CTkButton(f, text="Commit", width=100, command=self.on_git_commit_ui).pack(side="left", padx=5)
         ctk.CTkButton(f, text="Push", width=100, command=lambda: self.on_git_action_async(["push"])).pack(side="left", padx=5)
         self.on_git_refresh_ui()
 
     def _init_tab_api(self, tab):
         tab.grid_columnconfigure(0, weight=1); tab.grid_rowconfigure(1, weight=1)
-        ctk.CTkButton(tab, text="Сканировать API", command=self.on_api_scan_ui).pack(pady=10)
-        self.ui_api_box = ctk.CTkTextbox(tab, font=("Consolas", 11)); self.ui_api_box.pack(fill="both", expand=True, padx=20, pady=10)
+        ctk.CTkButton(tab, text="Scan API", command=self.on_api_scan_ui).pack(pady=10)
+        self.ui_api_box = ctk.CTkTextbox(tab, font=("FreeMono", 11)); self.ui_api_box.pack(fill="both", expand=True, padx=20, pady=10)
 
     def _init_tab_system(self, tab):
         tab.grid_columnconfigure((0, 1), weight=1)
-        # Бэкапы
-        f1 = ctk.CTkFrame(tab); f1.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        ctk.CTkLabel(f1, text="Снимки проекта", font=("Arial", 14, "bold")).pack(pady=10)
-        self.ui_snap_menu = ctk.CTkOptionMenu(f1, values=["Нет бэкапов"]); self.ui_snap_menu.pack(pady=10)
-        ctk.CTkButton(f1, text="Создать сейчас", command=self.on_snap_create_ui).pack(pady=5)
-        ctk.CTkButton(f1, text="Восстановить", fg_color="orange", command=self.on_snap_restore_ui).pack(pady=5)
-        self.on_snap_refresh_list_ui()
 
-        # Обновления
         f2 = ctk.CTkFrame(tab); f2.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-        ctk.CTkLabel(f2, text="GitHub Обслуживание", font=("Arial", 14, "bold")).pack(pady=10)
-        ctk.CTkButton(f2, text="Update Studio.py", command=self.on_update_studio_ui).pack(pady=5)
-        ctk.CTkButton(f2, text="Update Engine Core", fg_color="#d68a00", command=self.on_update_engine_ui).pack(pady=5)
-        for lib in Config.LIBRARY_MAP:
-            ctk.CTkButton(f2, text=f"Install {lib}", width=150, command=lambda l=lib: self.on_lib_install_ui(l)).pack(pady=2)
+        ctk.CTkButton(f2, text="Update studio.py", command=self.on_update_studio_ui).pack(pady=5)
+        ctk.CTkButton(f2, text="Update Engine Core", fg_color=CS[12], command=self.on_update_engine_ui).pack(pady=5)
 
     def _init_tab_assets(self, tab):
         tab.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(tab, text="Конвертер .obj в заголовок C", font=("Arial", 18, "bold")).pack(pady=20)
-        ctk.CTkButton(tab, text="Выбрать файл .obj", command=self.on_asset_select_ui).pack(pady=10)
-        self.ui_asset_lbl = ctk.CTkLabel(tab, text="Ничего не выбрано", text_color="gray"); self.ui_asset_lbl.pack()
-        self.ui_asset_btn = ctk.CTkButton(tab, text="Конвертировать", state="disabled", command=self.on_asset_convert_ui)
+        ctk.CTkLabel(tab, text="Convert .obj to .c", font=("Arial", 18, "bold")).pack(pady=20)
+        ctk.CTkButton(tab, text="Choose .obj", command=self.on_asset_select_ui).pack(pady=10)
+        self.ui_asset_lbl = ctk.CTkLabel(tab, text="Nothing is choosed", text_color="gray"); self.ui_asset_lbl.pack()
+        self.ui_asset_btn = ctk.CTkButton(tab, text="Convert", state="disabled", command=self.on_asset_convert_ui)
         self.ui_asset_btn.pack(pady=20)
 
-    # --- BRIDGE METHODS ---
-    def log_to_console(self, m, t=None): self.after(0, lambda: self.console_view.write(m, t))
+    def log_to_console(self, m, t=None): self.after(0, lambda: self.console_view.log(m, t))
     def clear_console(self): self.after(0, self.console_view.clear_content)
-    def clear_issues(self): self.after(0, self.issues_view.clear_table)
+    def clear_issues(self): self.after(0, self.issues_view.clear_issues)
     def on_compiler_message(self, output):
         for line in output.splitlines():
             m = self.build_sys.gcc_regex.match(line)
@@ -702,7 +652,6 @@ class StudioApp(ctk.CTk):
                 self.log_to_console(line + "\n", "error" if sev == "error" else "warning")
             else: self.log_to_console(line + "\n")
 
-    # --- EVENT HANDLERS ---
     def on_toggle_hot_reload(self):
         self.hot_reload_active = self.sw_auto.get()
         if self.hot_reload_active: threading.Thread(target=self._hot_reload_loop, daemon=True).start()
@@ -721,10 +670,10 @@ class StudioApp(ctk.CTk):
 
     def on_git_refresh_ui(self):
         self.ui_git_log.delete("1.0", "end")
-        self.ui_git_log.insert("end", GitEngine.get_detailed_status())
+        self.ui_git_log.insert("end", GitEngine.get_repo_status())
 
     def on_git_commit_ui(self):
-        m = simpledialog.askstring("Git Commit", "Что изменилось?")
+        m = simpledialog.askstring("Git Commit", "Commit name")
         if m:
             def run():
                 self.log_to_console("Git indexing...\n", "info")
@@ -744,43 +693,14 @@ class StudioApp(ctk.CTk):
 
     def on_api_scan_ui(self):
         self.ui_api_box.delete("1.0", "end")
-        api_map = EngineDocParser.parse_engine_api()
+        api_map = parse_engine_api()
         if not api_map:
-            self.ui_api_box.insert("end", "API не найдено.")
+            self.ui_api_box.insert("end", "Failed to scan API.")
             return
         for file, funcs in api_map.items():
             self.ui_api_box.insert("end", f"[{file}]\n", "info")
             for f in funcs: self.ui_api_box.insert("end", f"  • {f}\n")
             self.ui_api_box.insert("end", "\n")
-
-    def on_snap_create_ui(self):
-        name = SnapshotManager.create_snapshot("manual")
-        self.log_to_console(f"Бэкап: {name}\n", "success")
-        self.on_snap_refresh_list_ui()
-
-    def on_snap_restore_ui(self):
-        name = self.ui_snap_menu.get()
-        if name != "Нет бэкапов" and messagebox.askyesno("?", f"Откатить к {name}?"):
-            if SnapshotManager.restore_from_zip(name):
-                self.log_to_console("Проект восстановлен.\n", "success")
-                self.on_snap_refresh_list_ui()
-
-    def on_snap_refresh_list_ui(self):
-        snapshots = SnapshotManager.list_snapshots()
-        if snapshots:
-            self.ui_snap_menu.configure(values=snapshots)
-            self.ui_snap_menu.set(snapshots[0])
-
-    def on_lib_install_ui(self, lib):
-        def run():
-            self.log_to_console(f"Загрузка {lib}...\n", "info")
-            try:
-                with urllib.request.urlopen(Config.LIBRARY_MAP[lib]) as r:
-                    Config.THIRDPARTY_DIR.mkdir(parents=True, exist_ok=True)
-                    (Config.THIRDPARTY_DIR / f"{lib}.h").write_bytes(r.read())
-                    self.log_to_console("Библиотека установлена.\n", "success")
-            except Exception as e: self.log_to_console(f"Error: {e}\n", "error")
-        threading.Thread(target=run, daemon=True).start()
 
     def on_asset_select_ui(self):
         p = ctk.filedialog.askopenfilename(filetypes=[("OBJ", "*.obj")])
@@ -793,23 +713,22 @@ class StudioApp(ctk.CTk):
         Config.ASSETS_DIR.mkdir(exist_ok=True)
         res = ModelAssetProcessor.process_obj_to_h(self.current_obj_path)
         (Config.ASSETS_DIR / f"{self.current_obj_path.stem}.h").write_text(res, encoding="utf-8")
-        messagebox.showinfo("OK", "Готово.")
-        self.log_to_console(f"Ассет {self.current_obj_path.name} сконвертирован.\n", "success")
+        messagebox.showinfo("OK", "Done.")
+        self.log_to_console(f"Asset {self.current_obj_path.name} converted successfully.\n", "success")
 
     def on_update_studio_ui(self):
         def run():
-            self.log_to_console("Обновление studio.py...\n", "info")
+            self.log_to_console("Updating studio.py...\n", "info")
             try:
                 with urllib.request.urlopen(Config.URL_STUDIO_SOURCE) as r:
                     with open("studio.py", "wb") as f: f.write(r.read())
-                self.log_to_console("Успешно. Перезапустите студию.\n", "success")
-            except Exception as e: self.log_to_console(f"Ошибка: {e}\n", "error")
+                self.log_to_console("Success. Restart the studio.\n", "success")
+            except Exception as e: self.log_to_console(f"Error: {e}\n", "error")
         threading.Thread(target=run, daemon=True).start()
 
     def on_update_engine_ui(self):
         def run():
-            self.log_to_console("Обновление ядра движка...\n", "info")
-            SnapshotManager.create_snapshot("auto_pre_engine_update")
+            self.log_to_console("Updating the engine core...\n", "info")
             try:
                 with urllib.request.urlopen(Config.URL_ENGINE_MASTER) as r:
                     with zipfile.ZipFile(io.BytesIO(r.read())) as z:
@@ -821,8 +740,8 @@ class StudioApp(ctk.CTk):
                                     dest = Config.ROOT_DIR / rel
                                     if f.endswith('/'): dest.mkdir(parents=True, exist_ok=True)
                                     else: dest.write_bytes(z.read(f))
-                self.log_to_console("Движок обновлен.\n", "success")
-            except Exception as e: self.log_to_console(f"Ошибка: {e}\n", "error")
+                self.log_to_console("Engine updated successfully.\n", "success")
+            except Exception as e: self.log_to_console(f"Error: {e}\n", "error")
         threading.Thread(target=run, daemon=True).start()
 
     def set_ui_busy_state(self, b):
@@ -830,9 +749,9 @@ class StudioApp(ctk.CTk):
         self.btn_compile.configure(state=st)
         self.btn_br.configure(state=st)
 
-# =============================================================================
-# ЗАПУСК
-# =============================================================================
+
+
+
 
 if __name__ == "__main__":
     try:
