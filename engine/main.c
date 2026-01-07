@@ -176,7 +176,6 @@ static void player_onmsg(void *_ent, ZEEnt_ent ent_id, ZEEnt_ent caller, ZEEnt_M
             ent->vel.y *= -1;
             ent->vel.x *= .8;
             ent->vel.z *= .8;
-            
             ent->pos.y = -2.1;
         }
         for (ZEEnt_ent id = ent_id+1;;++id) {
@@ -186,18 +185,15 @@ static void player_onmsg(void *_ent, ZEEnt_ent ent_id, ZEEnt_ent caller, ZEEnt_M
                 Player_Data other_ent;
                 ZEEnt_send(ZEENT_MSG_USR2, id, &other_ent);
                 f64 d = ZEVec3_Mag(ZEVec3_Sub(ent->pos, other_ent.pos));
-                ZEVec3 d1 = ZEVec3_Sub(ent->pos, other_ent.pos);
-                d1 = ZEVec3_Scale(d1, 1./d);
-                ZEVec3 v1n = ZEVec3_Norm(ent->vel);
-                if (d <= .17 && DOT3(d1.x,d1.y,d1.z,v1n.x,v1n.y,v1n.z) > .5) {
+                ZEVec3 z = ZEVec3_Scale(ZEVec3_Add(ent->pos, other_ent.pos), .5);
+                if (d <= .17) {
                     const float m1 = 1, m2 = 1;
                     ZEVec3 v1 = ent->vel, v2 = other_ent.vel;
-                    printf("%d(%2.2f;%2.2f;%2.2f)", ent_id, ent->pos.x, ent->pos.y, ent->pos.z);
-                    ZEVec3 v1d = ZEPhysics_get_vel(m1, v1, v2, d/.17);
-                    printf("%d(%2.2f;%2.2f;%2.2f)", id, other_ent.pos.x, other_ent.pos.y, other_ent.pos.z);
-                    ZEVec3 v2d = ZEPhysics_get_vel(m2, v2, v1, d/.17);
-                    ent->vel = v1d;
-                    other_ent.vel = v2d;
+                    printf("%d(%2.2f;%2.2f;%2.2f)\n", ent_id, ent->pos.x, ent->pos.y, ent->pos.z);
+                    printf("%d(%2.2f;%2.2f;%2.2f)\n", id, other_ent.pos.x, other_ent.pos.y, other_ent.pos.z);
+                    ZEPhysics_cmsolver(m1, &v1, m2, &v2, ZEVec3_Sub(ent->pos, z), ZEVec3_Sub(other_ent.pos, z));
+                    ent->vel = v1;
+                    other_ent.vel = v2;
                     ZEEnt_send(ZEENT_MSG_USR1, id, &other_ent);
                 }
             }
