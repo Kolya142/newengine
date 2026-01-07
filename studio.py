@@ -1,7 +1,7 @@
 active_studio_name = \
-"NewEngine Studio v0.10.0"
+"Zeminka Studio v0.10.0 stable branch"
 """
-An interactive development environment for the Kolya142's engine "NewEngine".
+An interactive development environment for the Kolya142's engine "ZeminkaEngine".
 
 License: MIT
 
@@ -550,7 +550,7 @@ class StudioApp(ctk.CTk):
         super().__init__()
 
         self.title(f"{Config.APP_NAME}")
-        self.geometry("1200x850")
+        self.geometry("800x650")  # Some laptops have screen 1280x720.
         ctk.set_appearance_mode("Dark" if Config.THEME == THEME_DARK else "White")
 
         self.build_sys = BuildCore(self)
@@ -564,8 +564,6 @@ class StudioApp(ctk.CTk):
 
         self._setup_sidebar()
         self._setup_main_tabs()
-
-        self.log_to_console("Core initialized.\n", "info")
 
     def _setup_sidebar(self):
         self.sidebar = ctk.CTkFrame(self, width=220, corner_radius=0)

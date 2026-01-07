@@ -1,4 +1,4 @@
-# Kolya142's new game engine
+# Kolya142's new game engine Zeminka
 
 ## Mainteiners
 [Kolya142](https://github.com/Kolya142) - Engine main developer \

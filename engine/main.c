@@ -1,4 +1,4 @@
-#include <neweng/engine.h>
+#include <zeminka/engine.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,7 +19,7 @@ static double getSystemTime() { // TODO: public functions
     u64 q = large.QuadPart/10;
     return (f64)q/(f64)scale_factor;
 #elif defined(__APPLE__)
-    natodo("Apple MacOSX");
+    zetodo("Apple MacOSX");
 #else
 #include <time.h> // Stolen from RGFW and rewrotten with floats.
     struct timespec ts;
@@ -41,57 +41,57 @@ static double getDeltaTime() {
 #define INTF_BBALL 0
 #define INTF_PLAYER 1
 
-f64 NE_deltaTime = 0, NE_systemTime = 0;
+f64 ZEdeltaTime = 0, ZEdeltaTime30Hz = 0, ZEsystemTime = 0;
 
 typedef struct {
-    NE_Vec2 pos, vel;
+    ZEVec2 pos, vel;
 } BBall_Data;
 
-static void *bball_alloc(NEnt_ent id) {
+static void *bball_alloc(ZEEnt_ent id) {
     BBall_Data *d = malloc(sizeof(BBall_Data));
-    d->pos = NE_Vec2_From2(.1, .2);
-    d->vel = NE_Vec2_From2(.3, .1);
+    d->pos = ZEVec2_From2(.1, .2);
+    d->vel = ZEVec2_From2(.3, .1);
     return d;
 }
 
-static void bball_onmsg(void *_ent, NEnt_ent ent_id, NEnt_ent caller, NEnt_Msg_Kind msg_kind, void *msg_data) {
+static void bball_onmsg(void *_ent, ZEEnt_ent ent_id, ZEEnt_ent caller, ZEEnt_Msg_Kind msg_kind, void *msg_data) {
     BBall_Data *ent = _ent;
     switch (msg_kind) {
-    case NENT_MSG_UPDATE: {
+    case ZEENT_MSG_UPDATE: {
         // MB i'll put something here.
     } break;
-    case NENT_MSG_RENDER: {
-        NScreen_DrawCircle(NE_Vec3_From3(ent->pos.x, ent->pos.y, 4.-4.*sqrt(ent->pos.x*ent->pos.x+ent->pos.y*ent->pos.y)), .01, NE_RED);
+    case ZEENT_MSG_RENDER: {
+        ZEScreen_DrawCircle(ZEVec3_From3(ent->pos.x, ent->pos.y, 4.-4.*sqrt(ent->pos.x*ent->pos.x+ent->pos.y*ent->pos.y)), .01, ZERED);
     } break;
-    case NENT_MSG_30Hz_UPDATE: {
-        ent->pos = NE_Vec2_Add(ent->pos, NE_Vec2_Scale(ent->vel, NE_deltaTime));
+    case ZEENT_MSG_30Hz_UPDATE: {
+        ent->pos = ZEVec2_Add(ent->pos, ZEVec2_Scale(ent->vel, ZEdeltaTime));
         const static double bs = .5f;
         if (ent->pos.x < -bs) {ent->pos.x = -bs;ent->vel.x *= -1;}
         if (ent->pos.x > bs) {ent->pos.x = bs;ent->vel.x *= -1;}
         if (ent->pos.y < -bs) {ent->pos.y = -bs;ent->vel.y *= -1;}
         if (ent->pos.y > bs) {ent->pos.y = bs;ent->vel.y *= -1;}
     } break;
-    case NENT_MSG_USR1: {
+    case ZEENT_MSG_USR1: {
         memcpy(&ent->pos, msg_data, sizeof(ent->pos));
     } break;
     default: {
-        natodo("WTF just now is happened???");
+        zetodo("WTF just now is happened???");
     } break;
     }
 }
 
-static void bball_dealloc(void *ent, NEnt_ent id) {
+static void bball_dealloc(void *ent, ZEEnt_ent id) {
     free(ent);
 }
 
-NEnt_intf bball_intf = {
+ZEEnt_intf bball_intf = {
     bball_alloc,
     bball_dealloc,
     bball_onmsg,
     INTF_BBALL
 };
 
-static const NE_Vertex player_model_v[] = {
+static const ZEVertex player_model_v[] = {
     {-1, -1, -1},
     {-1, -1, +1},
     {-1, +1, +1},
@@ -102,18 +102,18 @@ static const NE_Vertex player_model_v[] = {
     {+1, +1, -1}
 };
 
-static const NE_Color player_model_c[] = {
-    NE_RED,
-    NE_MAGENTA,
-    NE_GREEN,
-    NE_CYAN,
-    NE_BLUE,
-    NE_BLACK,
-    NE_WHITE,
-    NE_ORANGE,
+static const ZEColor player_model_c[] = {
+    ZERED,
+    ZEMAGENTA,
+    ZEGREEN,
+    ZECYAN,
+    ZEBLUE,
+    ZEBLACK,
+    ZEWHITE,
+    ZEORANGE,
 };
 
-static const NE_Face player_model_f[] = {   
+static const ZEFace player_model_f[] = {   
     {0, 1, 2},
     {2, 3, 0},
     
@@ -135,7 +135,7 @@ static const NE_Face player_model_f[] = {
     {6-1, 2-1, 3-3},
 };
 
-static const NE_Model player_model = {
+static const ZEModel player_model = {
     player_model_v,
     player_model_c,
     player_model_f,
@@ -143,35 +143,35 @@ static const NE_Model player_model = {
 };
 
 typedef struct {
-    NE_Vec3 pos, vel;
+    ZEVec3 pos, vel;
 } Player_Data;
 
-static void *player_alloc(NEnt_ent id) {
+static void *player_alloc(ZEEnt_ent id) {
     Player_Data *d = malloc(sizeof(Player_Data));
-    d->pos = NE_Vec3_From3(0,0,1.);
-    d->vel = NE_Vec3_From3(0,0,0);
+    d->pos = ZEVec3_From3(0,0,1.);
+    d->vel = ZEVec3_From3(0,0,0);
     return d;
 }
 
-static void player_onmsg(void *_ent, NEnt_ent ent_id, NEnt_ent caller, NEnt_Msg_Kind msg_kind, void *msg_data) {
+static void player_onmsg(void *_ent, ZEEnt_ent ent_id, ZEEnt_ent caller, ZEEnt_Msg_Kind msg_kind, void *msg_data) {
     Player_Data *ent = _ent;
     switch (msg_kind) {
-    case NENT_MSG_UPDATE: {
-        if (ent->pos.y <= -5) NEnt_destroy(ent_id);
+    case ZEENT_MSG_UPDATE: {
+        if (ent->pos.y <= -5) ZEEnt_destroy(ent_id);
     } break;
-    case NENT_MSG_RENDER: {
-        // NScreen_DrawCircle(ent->pos, .01, NE_MYCOLOR);
-        NE_TransformW tw = NE_Transform_Cache((NE_Transform) {
+    case ZEENT_MSG_RENDER: {
+        // ZEScreen_DrawCircle(ent->pos, .01, ZEMYCOLOR);
+        ZETransformW tw = ZETransform_Cache((ZETransform) {
                 ent->pos,
-                {0,NE_systemTime,0},
-                NE_Vec3_From1(.1),
+                {0,ZEsystemTime,0},
+                ZEVec3_From1(.1),
             });
-        NScreen_RenderModel(player_model, tw);
+        ZEScreen_RenderModel(player_model, tw);
     } break;
-    case NENT_MSG_30Hz_UPDATE: {
-        ent->pos = NE_Vec3_Add(ent->pos, NE_Vec3_Scale(ent->vel, NE_deltaTime));
-        ent->vel.y -= GRAV*NE_deltaTime;
-        ent->vel = NE_Vec3_Add(ent->vel, NE_Vec3_Scale(ent->vel, NE_deltaTime*(.997-1.)));
+    case ZEENT_MSG_30Hz_UPDATE: {
+        ent->pos = ZEVec3_Add(ent->pos, ZEVec3_Scale(ent->vel, ZEdeltaTime));
+        ent->vel.y -= GRAV*ZEdeltaTime;
+        ent->vel = ZEVec3_Add(ent->vel, ZEVec3_Scale(ent->vel, ZEdeltaTime*(.997-1.)));
         if (ent->pos.y < -2.1) {
             ent->vel.y *= -1;
             ent->vel.x *= .8;
@@ -179,216 +179,206 @@ static void player_onmsg(void *_ent, NEnt_ent ent_id, NEnt_ent caller, NEnt_Msg_
             
             ent->pos.y = -2.1;
         }
-        for (NEnt_ent id = 0;;++id) {
-            if (id == ent_id) continue;
-            s32 iid = NEnt_get_intfid(id);
+        for (ZEEnt_ent id = ent_id+1;;++id) {
+            s32 iid = ZEEnt_get_intfid(id);
             if (iid == -1) break;
             if (iid == INTF_PLAYER) { // TODO: i don't know to find collisions between two rotated cubes.
                 Player_Data other_ent;
-                NEnt_send(NENT_MSG_USR2, id, &other_ent);
-                if (NE_Vec3_MagSq(NE_Vec3_Sub(ent->pos, other_ent.pos)) <= .1*.1+.1*.1+.1*.1) {
+                ZEEnt_send(ZEENT_MSG_USR2, id, &other_ent);
+                f64 d = ZEVec3_Mag(ZEVec3_Sub(ent->pos, other_ent.pos));
+                ZEVec3 d1 = ZEVec3_Sub(ent->pos, other_ent.pos);
+                d1 = ZEVec3_Scale(d1, 1./d);
+                ZEVec3 v1n = ZEVec3_Norm(ent->vel);
+                if (d <= .17 && DOT3(d1.x,d1.y,d1.z,v1n.x,v1n.y,v1n.z) > .5) {
                     const float m1 = 1, m2 = 1;
-                    NE_Vec3 v1 = ent->vel, v2 = other_ent.vel;
-                    NE_Vec3 p1 = ent->pos, p2 = other_ent.pos;
-                    NE_Vec3 v1d, v2d;
-                    if (m1 < m2) {
-                        NE_Vec3 d = NE_Vec3_Sub(p2, p1);
-                        NE_Vec3 dn = NE_Vec3_Norm(d);
-                        f64 k = DOT3(dn.x,dn.y,dn.z,v1.x,v1.y,v1.z);
-                        v1d = NE_Vec3_Add(v1, NE_Vec3_Scale(d, 1+k));
-                        v2d.x = NPhysics_cmsolver(m2, v2.x, m1, v1.x, v1d.x);
-                        v2d.y = NPhysics_cmsolver(m2, v2.y, m1, v1.y, v1d.y);
-                        v2d.z = NPhysics_cmsolver(m2, v2.z, m1, v1.z, v1d.z);
-                    }
-                    else {
-                        v2d = NE_Vec3_Add(v2, NE_Vec3_Sub(p1, p2));
-                        v1d.x = NPhysics_cmsolver(m1, v1.x, m2, v2.x, v2d.x);
-                        v1d.y = NPhysics_cmsolver(m1, v1.y, m2, v2.y, v2d.y);
-                        v1d.z = NPhysics_cmsolver(m1, v1.z, m2, v2.z, v2d.z);
-                    }
+                    ZEVec3 v1 = ent->vel, v2 = other_ent.vel;
+                    printf("%d(%2.2f;%2.2f;%2.2f)", ent_id, ent->pos.x, ent->pos.y, ent->pos.z);
+                    ZEVec3 v1d = ZEPhysics_get_vel(m1, v1, v2, d/.17);
+                    printf("%d(%2.2f;%2.2f;%2.2f)", id, other_ent.pos.x, other_ent.pos.y, other_ent.pos.z);
+                    ZEVec3 v2d = ZEPhysics_get_vel(m2, v2, v1, d/.17);
                     ent->vel = v1d;
                     other_ent.vel = v2d;
-                    NEnt_send(NENT_MSG_USR1, iid, &other_ent);
+                    ZEEnt_send(ZEENT_MSG_USR1, id, &other_ent);
                 }
             }
         }
-        // ent->pos = NE_Vec3_From3(cos(NE_systemTime),.5*sin(2*NE_systemTime), 1.);
+        // ent->pos = ZEVec3_From3(cos(ZEsystemTime),.5*sin(2*ZEsystemTime), 1.);
     } break;
-    case NENT_MSG_USR1: {
+    case ZEENT_MSG_USR1: {
         memcpy(ent, msg_data, sizeof(*ent));
     } break;
-    case NENT_MSG_USR2: {
+    case ZEENT_MSG_USR2: {
         memcpy(msg_data, ent, sizeof(*ent));
     } break;
     default: {
-        natodo("WTF just now is happened???");
+        zetodo("WTF just now is happened???");
     } break;
     }
 }
 
-static void player_dealloc(void *ent, NEnt_ent id) {
+static void player_dealloc(void *ent, ZEEnt_ent id) {
     free(ent);
 }
 
-NEnt_intf player_intf = {
+ZEEnt_intf player_intf = {
     player_alloc,
     player_dealloc,
     player_onmsg,
     INTF_PLAYER
 };
 
-f64 NE_mousedX = 0, NE_mousedY = 0;
+f64 ZEmousedX = 0, ZEmousedY = 0;
 
 int main() {
-    NScreen_init(1280, 720, 120., "New Engine");
+    ZEScreen_init(1280, 720, 120., "Zeminka engine v" ZEMINKAENG_VER " test code");
 
-    NE_Vec3 pos = NE_Vec3_From3(0, 0, 1.);
+    ZEVec3 pos = ZEVec3_From3(0, 0, 1.);
     
-    NEnt_add(bball_intf);
+    ZEEnt_add(bball_intf);
     
-    NEnt_add(player_intf);
+    ZEEnt_add(player_intf);
     
     f64 c_yaw = 0;
     f64 c_pitch = 0;
-    NE_Vec3 c_pos = {0};
+    ZEVec3 c_pos = {0};
     
-    while (NScreen_IsNtClosed()) {
-        NE_deltaTime = getDeltaTime();
-        NE_systemTime = getSystemTime();
-        pos.y += NE_deltaTime*.13;
-        pos.x += NE_deltaTime*.14;
+    while (ZEScreen_IsNtClosed()) {
+        ZEdeltaTime = getDeltaTime();
+        ZEsystemTime = getSystemTime();
+        pos.y += ZEdeltaTime*.13;
+        pos.x += ZEdeltaTime*.14;
         if (pos.x < -1.f) pos.x = 1.f;
         if (pos.x > 1.f) pos.x = -1.f;
         if (pos.y < -1.f) pos.y = 1.f;
         if (pos.y > 1.f) pos.y = -1.f;
-        if (NScreen_IsKeyPressed(NE_KEY_r))
-            NEnt_add(bball_intf);
-        NScreen_BeginFrame(&NE_mousedX, &NE_mousedY);
+        if (ZEScreen_IsKeyPressed(ZEKEY_r))
+            ZEEnt_add(bball_intf);
+        ZEScreen_BeginFrame(&ZEmousedX, &ZEmousedY);
         {
-            NE_Vec3 vel = {0};
-            if (NScreen_IsKeyDown(NE_KEY_w)) vel.z += 1.;
-            if (NScreen_IsKeyDown(NE_KEY_a)) vel.x -= 1.;
-            if (NScreen_IsKeyDown(NE_KEY_s)) vel.z -= 1.;
-            if (NScreen_IsKeyDown(NE_KEY_d)) vel.x += 1.;
-            if (NScreen_IsKeyDown(NE_KEY_q)) vel.y += 1.;
-            if (NScreen_IsKeyDown(NE_KEY_e)) vel.y -= 1.;
-            vel = NE_Vec3_Norm(vel);
-            vel = NE_Vec3_Scale(vel, NE_deltaTime);
-            vel = NE_Vec3_Scale(vel, .5);
-            if (NScreen_IsKeyDown(NE_KEY_altL)) vel = NE_Vec3_Scale(vel, .15);
-            if (NScreen_IsKeyDown(NE_KEY_shiftL)) vel = NE_Vec3_Scale(vel, 4.);
-            NE_TransformW tw = NE_Transform_Cache((NE_Transform) {{0}, {-c_pitch, c_yaw, 0}, {1,1,1}});
-            vel = NE_TransformW_Apply(tw, vel);
-            c_pos = NE_Vec3_Add(vel, c_pos);
+            ZEVec3 vel = {0};
+            if (ZEScreen_IsKeyDown(ZEKEY_w)) vel.z += 1.;
+            if (ZEScreen_IsKeyDown(ZEKEY_a)) vel.x -= 1.;
+            if (ZEScreen_IsKeyDown(ZEKEY_s)) vel.z -= 1.;
+            if (ZEScreen_IsKeyDown(ZEKEY_d)) vel.x += 1.;
+            if (ZEScreen_IsKeyDown(ZEKEY_q)) vel.y += 1.;
+            if (ZEScreen_IsKeyDown(ZEKEY_e)) vel.y -= 1.;
+            vel = ZEVec3_Norm(vel);
+            vel = ZEVec3_Scale(vel, ZEdeltaTime);
+            vel = ZEVec3_Scale(vel, .5);
+            if (ZEScreen_IsKeyDown(ZEKEY_altL)) vel = ZEVec3_Scale(vel, .15);
+            if (ZEScreen_IsKeyDown(ZEKEY_shiftL)) vel = ZEVec3_Scale(vel, 4.);
+            ZETransformW tw = ZETransform_Cache((ZETransform) {{0}, {-c_pitch, c_yaw, 0}, {1,1,1}});
+            vel = ZETransformW_Apply(tw, vel);
+            c_pos = ZEVec3_Add(vel, c_pos);
         }
-        if (NScreen_IsKeyPressed(NE_KEY_z)) {
+        if (ZEScreen_IsKeyPressed(ZEKEY_z)) {
             Player_Data pd;
-            NE_TransformW tw = NE_Transform_Cache((NE_Transform) {{0}, {-c_pitch, c_yaw, 0}, {1,1,1}});
-            NE_Vec3 fd = NE_TransformW_Apply(tw, NE_Vec3_From3(0,0,1));
-            pd.pos = NE_Vec3_Add(c_pos, NE_Vec3_Scale(fd, .4));
-            pd.vel = NE_Vec3_Scale(fd, .8);
-            NEnt_send(NENT_MSG_USR1, NEnt_add(player_intf), &pd);
+            ZETransformW tw = ZETransform_Cache((ZETransform) {{0}, {-c_pitch, c_yaw, 0}, {1,1,1}});
+            ZEVec3 fd = ZETransformW_Apply(tw, ZEVec3_From3(0,0,1));
+            pd.pos = ZEVec3_Add(c_pos, ZEVec3_Scale(fd, .4));
+            pd.vel = ZEVec3_Scale(fd, .8);
+            ZEEnt_send(ZEENT_MSG_USR1, ZEEnt_add(player_intf), &pd);
         }
-        if (NScreen_IsKeyDown(NE_KEY_up))
-            c_pitch += NE_deltaTime;
-        if (NScreen_IsKeyDown(NE_KEY_down))
-            c_pitch -= NE_deltaTime;
-        if (NScreen_IsKeyDown(NE_KEY_left))
-            c_yaw += NE_deltaTime;
-        if (NScreen_IsKeyDown(NE_KEY_right))
-            c_yaw -= NE_deltaTime;
-        c_pitch -= NE_mousedY;
-        c_yaw -= NE_mousedX;
-        NScreen_RotateCamera(c_yaw, c_pitch, 0);
-        NScreen_TranslateCamera(c_pos);
+        if (ZEScreen_IsKeyDown(ZEKEY_up))
+            c_pitch += ZEdeltaTime;
+        if (ZEScreen_IsKeyDown(ZEKEY_down))
+            c_pitch -= ZEdeltaTime;
+        if (ZEScreen_IsKeyDown(ZEKEY_left))
+            c_yaw += ZEdeltaTime;
+        if (ZEScreen_IsKeyDown(ZEKEY_right))
+            c_yaw -= ZEdeltaTime;
+        c_pitch -= ZEmousedY;
+        c_yaw -= ZEmousedX;
+        ZEScreen_RotateCamera(c_yaw, c_pitch, 0);
+        ZEScreen_TranslateCamera(c_pos);
         {
-            NE_TransformW tw = NE_Transform_Cache((NE_Transform) {
+            ZETransformW tw = ZETransform_Cache((ZETransform) {
                     {0,-2,0},
                     {0,0,PI},
                     {100, .1, 100}
                 });
-            NScreen_RenderModel(player_model, tw);
+            ZEScreen_RenderModel(player_model, tw);
         }
-        NE_Rotation r = NE_Rotation_From_Rad(NE_systemTime);
-        NScreen_DrawTriangle_Ex(
-            NE_Vec3_Add(pos, NE_Vec3_RotateXY(NE_Vec3_From2(0, .1f),r)),
-            NE_Vec3_Add(pos, NE_Vec3_RotateXZ(NE_Vec3_From2(-.1f, -.1f),r)),
-            NE_Vec3_Add(pos, NE_Vec3_RotateXZ(NE_Vec3_From2(.1f, -.1f),r)),
-            NE_GREEN,
-            NE_RED,
-            NE_BLUE
+        ZERotation r = ZERotation_From_Rad(ZEsystemTime);
+        ZEScreen_DrawTriangle_Ex(
+            ZEVec3_Add(pos, ZEVec3_RotateXY(ZEVec3_From2(0, .1f),r)),
+            ZEVec3_Add(pos, ZEVec3_RotateXZ(ZEVec3_From2(-.1f, -.1f),r)),
+            ZEVec3_Add(pos, ZEVec3_RotateXZ(ZEVec3_From2(.1f, -.1f),r)),
+            ZEGREEN,
+            ZERED,
+            ZEBLUE
             );
-        pos.z = sinf(NE_systemTime)*.5f+1.f;
-        NEnt_update();
-        NScreen_EndFrame();
+        pos.z = sinf(ZEsystemTime)*.5f+1.f;
+        ZEEnt_update();
+        ZEScreen_EndFrame();
     }
 }
 
-NE_Vec2 NE_Vec2_Rotate(NE_Vec2 v, NE_Rotation r) {return NE_Vec2_From2(v.x*r.cos-v.y*r.sin,v.x*r.sin+v.y*r.cos);}
-NE_Vec3 NE_Vec3_RotateXY(NE_Vec3 v, NE_Rotation r) {
+ZEVec2 ZEVec2_Rotate(ZEVec2 v, ZERotation r) {return ZEVec2_From2(v.x*r.cos-v.y*r.sin,v.x*r.sin+v.y*r.cos);}
+ZEVec3 ZEVec3_RotateXY(ZEVec3 v, ZERotation r) {
     f64 dx = v.x*r.cos-v.y*r.sin, dy = v.x*r.sin+v.y*r.cos;
     v.x = dx;
     v.y = dy;
     return v;
 }
-NE_Vec3 NE_Vec3_RotateYZ(NE_Vec3 v, NE_Rotation r) {
+ZEVec3 ZEVec3_RotateYZ(ZEVec3 v, ZERotation r) {
     f64 dy = v.y*r.cos-v.z*r.sin, dz = v.y*r.sin+v.z*r.cos;
     v.y = dy;
     v.z = dz;
     return v;
 }
-NE_Vec3 NE_Vec3_RotateXZ(NE_Vec3 v, NE_Rotation r) {
+ZEVec3 ZEVec3_RotateXZ(ZEVec3 v, ZERotation r) {
     f64 dx = v.x*r.cos-v.z*r.sin, dz = v.x*r.sin+v.z*r.cos;
     v.x = dx;
     v.z = dz;
     return v;
 }
 
-NE_Vec2 NE_Vec2_Add(NE_Vec2 a, NE_Vec2 b) {return NE_Vec2_From2(a.x+b.x,a.y+b.y);}
-NE_Vec2 NE_Vec2_Sub(NE_Vec2 a, NE_Vec2 b) {return NE_Vec2_From2(a.x-b.x,a.y-b.y);}
-NE_Vec2 NE_Vec2_Mul(NE_Vec2 a, NE_Vec2 b) {return NE_Vec2_From2(a.x*b.x,a.y*b.y);}
-NE_Vec2 NE_Vec2_Div(NE_Vec2 a, NE_Vec2 b) {return NE_Vec2_From2(a.x/b.x,a.y/b.y);}
-NE_Vec2 NE_Vec2_Scale(NE_Vec2 v, f64 s) {return NE_Vec2_From2(v.x*s,v.y*s);}
+ZEVec2 ZEVec2_Add(ZEVec2 a, ZEVec2 b) {return ZEVec2_From2(a.x+b.x,a.y+b.y);}
+ZEVec2 ZEVec2_Sub(ZEVec2 a, ZEVec2 b) {return ZEVec2_From2(a.x-b.x,a.y-b.y);}
+ZEVec2 ZEVec2_Mul(ZEVec2 a, ZEVec2 b) {return ZEVec2_From2(a.x*b.x,a.y*b.y);}
+ZEVec2 ZEVec2_Div(ZEVec2 a, ZEVec2 b) {return ZEVec2_From2(a.x/b.x,a.y/b.y);}
+ZEVec2 ZEVec2_Scale(ZEVec2 v, f64 s) {return ZEVec2_From2(v.x*s,v.y*s);}
 
-NE_Vec3 NE_Vec3_Add(NE_Vec3 a, NE_Vec3 b) {return NE_Vec3_From3(a.x+b.x,a.y+b.y,a.z+b.z);}
-NE_Vec3 NE_Vec3_Sub(NE_Vec3 a, NE_Vec3 b) {return NE_Vec3_From3(a.x-b.x,a.y-b.y,a.z-b.z);}
-NE_Vec3 NE_Vec3_Mul(NE_Vec3 a, NE_Vec3 b) {return NE_Vec3_From3(a.x*b.x,a.y*b.y,a.z*b.z);}
-NE_Vec3 NE_Vec3_Div(NE_Vec3 a, NE_Vec3 b) {return NE_Vec3_From3(a.x/b.x,a.y/b.y,a.z/b.z);}
-NE_Vec3 NE_Vec3_Scale(NE_Vec3 v, f64 s) {return NE_Vec3_From3(v.x*s,v.y*s,v.z*s);}
+ZEVec3 ZEVec3_Add(ZEVec3 a, ZEVec3 b) {return ZEVec3_From3(a.x+b.x,a.y+b.y,a.z+b.z);}
+ZEVec3 ZEVec3_Sub(ZEVec3 a, ZEVec3 b) {return ZEVec3_From3(a.x-b.x,a.y-b.y,a.z-b.z);}
+ZEVec3 ZEVec3_Mul(ZEVec3 a, ZEVec3 b) {return ZEVec3_From3(a.x*b.x,a.y*b.y,a.z*b.z);}
+ZEVec3 ZEVec3_Div(ZEVec3 a, ZEVec3 b) {return ZEVec3_From3(a.x/b.x,a.y/b.y,a.z/b.z);}
+ZEVec3 ZEVec3_Scale(ZEVec3 v, f64 s) {return ZEVec3_From3(v.x*s,v.y*s,v.z*s);}
 
-f64     NE_Vec3_MagSq(NE_Vec3 v) {return v.x*v.x+v.y*v.y+v.z*v.z;}
-f64     NE_Vec3_Mag(NE_Vec3 v) {return sqrt(v.x*v.x+v.y*v.y+v.z*v.z);}
-NE_Vec3 NE_Vec3_Norm(NE_Vec3 v) {
+f64    ZEVec3_MagSq(ZEVec3 v) {return v.x*v.x+v.y*v.y+v.z*v.z;}
+f64    ZEVec3_Mag(ZEVec3 v) {return sqrt(v.x*v.x+v.y*v.y+v.z*v.z);}
+ZEVec3 ZEVec3_Norm(ZEVec3 v) {
     if (v.x == 0 && v.y == 0 && v.z == 0) return v;
-    f64 m = NE_Vec3_Mag(v);
-    return NE_Vec3_From3(v.x/m,v.y/m,v.z/m);
+    f64 m = ZEVec3_Mag(v);
+    return ZEVec3_From3(v.x/m,v.y/m,v.z/m);
 }
 
-NE_Vec4 NE_Vec4_Add(NE_Vec4 a, NE_Vec4 b) {return NE_Vec4_From4(a.x+b.x,a.y+b.y,a.z+b.z,a.w+b.w);}
-NE_Vec4 NE_Vec4_Sub(NE_Vec4 a, NE_Vec4 b) {return NE_Vec4_From4(a.x-b.x,a.y-b.y,a.z-b.z,a.w-b.w);}
-NE_Vec4 NE_Vec4_Mul(NE_Vec4 a, NE_Vec4 b) {return NE_Vec4_From4(a.x*b.x,a.y*b.y,a.z*b.z,a.w*b.w);}
-NE_Vec4 NE_Vec4_Div(NE_Vec4 a, NE_Vec4 b) {return NE_Vec4_From4(a.x/b.x,a.y/b.y,a.z/b.z,a.w/b.w);}
-NE_Vec4 NE_Vec4_Scale(NE_Vec4 v, f64 s) {return NE_Vec4_From4(v.x*s,v.y*s,v.z*s,v.w*s);}
+ZEVec4 ZEVec4_Add(ZEVec4 a, ZEVec4 b) {return ZEVec4_From4(a.x+b.x,a.y+b.y,a.z+b.z,a.w+b.w);}
+ZEVec4 ZEVec4_Sub(ZEVec4 a, ZEVec4 b) {return ZEVec4_From4(a.x-b.x,a.y-b.y,a.z-b.z,a.w-b.w);}
+ZEVec4 ZEVec4_Mul(ZEVec4 a, ZEVec4 b) {return ZEVec4_From4(a.x*b.x,a.y*b.y,a.z*b.z,a.w*b.w);}
+ZEVec4 ZEVec4_Div(ZEVec4 a, ZEVec4 b) {return ZEVec4_From4(a.x/b.x,a.y/b.y,a.z/b.z,a.w/b.w);}
+ZEVec4 ZEVec4_Scale(ZEVec4 v, f64 s) {return ZEVec4_From4(v.x*s,v.y*s,v.z*s,v.w*s);}
 
-NE_TransformW NE_Transform_Cache(NE_Transform t) {
-    return (NE_TransformW) {
+ZETransformW ZETransform_Cache(ZETransform t) {
+    return (ZETransformW) {
         t.position,
         t.scale,
-        NE_Rotation_From_Rad(t.rotation.z),
-        NE_Rotation_From_Rad(t.rotation.y),
-        NE_Rotation_From_Rad(t.rotation.x),
+        ZERotation_From_Rad(t.rotation.z),
+        ZERotation_From_Rad(t.rotation.y),
+        ZERotation_From_Rad(t.rotation.x),
     };
 }
 
-NE_Vec3 NE_TransformW_Apply(NE_TransformW t, NE_Vec3 v) {
+ZEVec3 ZETransformW_Apply(ZETransformW t, ZEVec3 v) {
     // RST
-    v = NE_Vec3_RotateYZ(v, t.cryz);
-    v = NE_Vec3_RotateXZ(v, t.crxz);
-    v = NE_Vec3_RotateXY(v, t.crxy);
+    v = ZEVec3_RotateYZ(v, t.cryz);
+    v = ZEVec3_RotateXZ(v, t.crxz);
+    v = ZEVec3_RotateXY(v, t.crxy);
 
-    v = NE_Vec3_Mul(v, t.scale);
+    v = ZEVec3_Mul(v, t.scale);
     
-    v = NE_Vec3_Add(v, t.position);
+    v = ZEVec3_Add(v, t.position);
 
     return v; 
 }

@@ -1,4 +1,4 @@
-#include <neweng/engine.h>
+#include <zeminka/engine.h>
 
 #define RGFW_IMPLEMENTATION
 #define RGFW_OPENGL
@@ -43,7 +43,7 @@ static u8 icon[16 * 16 * 3 + 1] = // Silly Placeholder
     "\377\000\000\377\000\000\060\377\000\060\377\000\060\377\000\060\377\000\060\377\000\060\377\000\060"
     "\377\000";
 
-void NScreen_init(u32 width, u32 height, f64 fov, const char *title) {
+void ZEScreen_init(u32 width, u32 height, f64 fov, const char *title) {
     rfov = fov;
     rwidth = width;
     rheight = height;
@@ -60,17 +60,17 @@ void NScreen_init(u32 width, u32 height, f64 fov, const char *title) {
 static bool is_closed = false;
 static bool isnt_closed = true;
 
-bool NScreen_IsClosed() {
+bool ZEScreen_IsClosed() {
     return is_closed;
 }
 
-bool NScreen_IsNtClosed() {
+bool ZEScreen_IsNtClosed() {
     return isnt_closed;
 }
 
 #include <GL/glu.h>
 
-void NScreen_BeginFrame(f64 *omx, f64 *omy) {
+void ZEScreen_BeginFrame(f64 *omx, f64 *omy) {
     is_closed = RGFW_window_shouldClose(rwin);
     isnt_closed = !is_closed;
     if (is_closed) return;
@@ -130,24 +130,24 @@ void NScreen_BeginFrame(f64 *omx, f64 *omy) {
     }
 }
 
-void NScreen_TranslateCamera(NE_Vec3 origin) {
+void ZEScreen_TranslateCamera(ZEVec3 origin) {
     glMatrixMode(GL_PROJECTION);
     glTranslated(-origin.x, -origin.y, -origin.z);
 }
 
-void NScreen_RotateCamera(f64 yaw, f64 pitch, f64 roll) {
+void ZEScreen_RotateCamera(f64 yaw, f64 pitch, f64 roll) {
     glMatrixMode(GL_PROJECTION);
     glRotated(roll*RAD2DEG, 0, 0, 1);
     glRotated(pitch*RAD2DEG, 1, 0, 0);
     glRotated(yaw*RAD2DEG, 0, 1, 0);
 }
 
-void NScreen_EndFrame() {
+void ZEScreen_EndFrame() {
     RGFW_window_swapBuffers_OpenGL(rwin);
     glFlush();
 }
 
-void NScreen_DrawCircle(NE_Vec3 o, f64 r, NE_Color col) {
+void ZEScreen_DrawCircle(ZEVec3 o, f64 r, ZEColor col) {
     glBegin(GL_TRIANGLES);
     glColor4d(col.r, col.g, col.b, col.a);
 
@@ -170,7 +170,7 @@ void NScreen_DrawCircle(NE_Vec3 o, f64 r, NE_Color col) {
     glEnd();
 }
 
-void NScreen_DrawTriangle(NE_Vec3 a, NE_Vec3 b, NE_Vec3 c, NE_Color col) {
+void ZEScreen_DrawTriangle(ZEVec3 a, ZEVec3 b, ZEVec3 c, ZEColor col) {
     glBegin(GL_TRIANGLES);
     glColor4d(col.r, col.g, col.b, col.a);
     glVertex3d(a.x, a.y, a.z);
@@ -179,7 +179,7 @@ void NScreen_DrawTriangle(NE_Vec3 a, NE_Vec3 b, NE_Vec3 c, NE_Color col) {
     glEnd();
 }
 
-void NScreen_DrawTriangle_Ex(NE_Vec3 a, NE_Vec3 b, NE_Vec3 c, NE_Color a_c, NE_Color b_c, NE_Color c_c) {
+void ZEScreen_DrawTriangle_Ex(ZEVec3 a, ZEVec3 b, ZEVec3 c, ZEColor a_c, ZEColor b_c, ZEColor c_c) {
     glBegin(GL_TRIANGLES);
     glColor4d(a_c.r, a_c.g, a_c.b, a_c.a);
     glVertex3d(a.x, a.y, a.z);
@@ -190,36 +190,36 @@ void NScreen_DrawTriangle_Ex(NE_Vec3 a, NE_Vec3 b, NE_Vec3 c, NE_Color a_c, NE_C
     glEnd();
 }
 
-bool NScreen_IsKeyPressed(NE_Key key) {
+bool ZEScreen_IsKeyPressed(ZEKey key) {
     return RGFW_isKeyPressed(key);
 }
 
-bool NScreen_IsKeyDown(NE_Key key) {
+bool ZEScreen_IsKeyDown(ZEKey key) {
     return RGFW_isKeyDown(key);
 }
 
-bool NScreen_IsKeyReleased(NE_Key key) {
+bool ZEScreen_IsKeyReleased(ZEKey key) {
     return RGFW_isKeyReleased(key);
 }
 
 static bool _depth_test = true;
 
-bool NScreen_GetDepthTest() {
+bool ZEScreen_GetDepthTest() {
     return _depth_test;
 }
 
-void NScreen_SetDepthTest(bool test) {
+void ZEScreen_SetDepthTest(bool test) {
     _depth_test = test;
     glDepthFunc(test ? GL_LESS : GL_ALWAYS);
 }
 
-void NScreen_RenderModel(NE_Model model, NE_TransformW transform) {
+void ZEScreen_RenderModel(ZEModel model, ZETransformW transform) {
     for (size_t i = 0; i < model.face_count; ++i) {
-        NE_Face face = model.faces[i];
-        NScreen_DrawTriangle_Ex(
-            NE_TransformW_Apply(transform, model.verteces[face.a]),
-            NE_TransformW_Apply(transform, model.verteces[face.b]),
-            NE_TransformW_Apply(transform, model.verteces[face.c]),
+        ZEFace face = model.faces[i];
+        ZEScreen_DrawTriangle_Ex(
+            ZETransformW_Apply(transform, model.verteces[face.a]),
+            ZETransformW_Apply(transform, model.verteces[face.b]),
+            ZETransformW_Apply(transform, model.verteces[face.c]),
             model.colors[face.a],
             model.colors[face.b],
             model.colors[face.c]
@@ -227,6 +227,6 @@ void NScreen_RenderModel(NE_Model model, NE_TransformW transform) {
     }
 }
 
-void *NScreen_GetSystemHandler() {
+void *ZEScreen_GetSystemHandler() {
     return rwin;
 }
