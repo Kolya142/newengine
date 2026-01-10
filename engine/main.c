@@ -189,9 +189,7 @@ static void player_onmsg(void *_ent, ZEEnt_ent ent_id, ZEEnt_ent caller, ZEEnt_M
                 if (d <= .17) {
                     const float m1 = 1, m2 = 1;
                     ZEVec3 v1 = ent->vel, v2 = other_ent.vel;
-                    printf("%d(%2.2f;%2.2f;%2.2f)\n", ent_id, ent->pos.x, ent->pos.y, ent->pos.z);
-                    printf("%d(%2.2f;%2.2f;%2.2f)\n", id, other_ent.pos.x, other_ent.pos.y, other_ent.pos.z);
-                    ZEPhysics_cmsolver(m1, &v1, m2, &v2, ZEVec3_Sub(ent->pos, z), ZEVec3_Sub(other_ent.pos, z));
+                    ZEPhysics_cmsolver(m1, &v1, m2, &v2);
                     ent->vel = v1;
                     other_ent.vel = v2;
                     ZEEnt_send(ZEENT_MSG_USR1, id, &other_ent);
