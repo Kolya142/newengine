@@ -9478,6 +9478,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_INPUT: {
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag) || !(win->internal.rawMouse)) return DefWindowProcW(hWnd, message, wParam, lParam);
+#if 0
 			unsigned size = sizeof(RAWINPUT);
 			static RAWINPUT raw;
 
@@ -9520,6 +9521,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			event.mouse.x = win->internal.lastMouseX;
 			event.mouse.y = win->internal.lastMouseY;
 			RGFW_mousePosCallback(win, event.mouse.x, event.mouse.y, event.mouse.vecX, event.mouse.vecY);
+#endif
 			break;
 		}
 		case WM_LBUTTONDOWN: case WM_RBUTTONDOWN: case WM_MBUTTONDOWN: case WM_XBUTTONDOWN:
@@ -9702,13 +9704,16 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 }
 
 void RGFW_releaseCursor(RGFW_window* win) {
+#if 0
 	RGFW_UNUSED(win);
 	ClipCursor(NULL);
 	const RAWINPUTDEVICE id = { 0x01, 0x02, RIDEV_REMOVE, NULL };
 	RegisterRawInputDevices(&id, 1, sizeof(id));
+#endif
 }
 
 void RGFW_captureCursor(RGFW_window* win) {
+#if 0
 	RGFW_UNUSED(win);
 
 	RECT clipRect;
@@ -9719,6 +9724,7 @@ void RGFW_captureCursor(RGFW_window* win) {
 
 	const RAWINPUTDEVICE id = { 0x01, 0x02, 0, win->src.window };
 	RegisterRawInputDevices(&id, 1, sizeof(id));
+#endif
 }
 
 #define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) { x = LoadLibraryA(lib); RGFW_ASSERT(x != NULL); }
